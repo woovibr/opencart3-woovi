@@ -5,5 +5,12 @@
     "license": "GPL-3.0",
     "require": {
         "php": "^7.4 || ^8.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.19"
+    },
+    "scripts": {
+        "style:check": "php-cs-fixer fix . --dry-run --diff --format=txt --verbose",
+        "style:fix": "php-cs-fixer fix ."
     }
 }

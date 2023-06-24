@@ -1,0 +1,9 @@
+{
+    "name": "open-pix/opencart-woovi",
+    "description": "Woovi integration module with OpenCart",
+    "type": "project",
+    "license": "GPL-3.0",
+    "require": {
+        "php": "^7.4 || ^8.0"
+    }
+}

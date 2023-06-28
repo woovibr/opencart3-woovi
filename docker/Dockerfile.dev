@@ -1,0 +1,44 @@
+# An image with OpenCart installed
+
+FROM php:8.1-apache
+
+# Use development default settings
+RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
+
+# Configure PHP extensions and Composer
+RUN apt-get update && apt-get upgrade -y && apt-get install -y git curl zip nano vim unzip wget netcat-traditional
+
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+
+RUN chmod +x /usr/local/bin/install-php-extensions && \
+    install-php-extensions gd zip mysqli pdo_mysql intl xdebug @composer
+
+# Configure Apache
+RUN a2enmod rewrite && echo "ServerName docker" >> /etc/apache2/apache2.conf
+
+# Configure document root and port
+ARG APP_PORT
+
+RUN sed -ri -e "s!/var/www/html!/opt/opencart!g" /etc/apache2/sites-available/*.conf && \
+    sed -ri -e "s!/var/www/!/opt/opencart/!g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf && \
+    sed -ri -e "s!80!${APP_PORT}!g" /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
+
+# Install OpenCart
+ARG OPENCART_VERSION
+
+WORKDIR /opt/opencart
+
+ADD "https://github.com/opencart/opencart/releases/download/$OPENCART_VERSION/opencart-$OPENCART_VERSION.zip" opencart.zip
+
+RUN unzip opencart.zip -d opencart && \
+    cp -r opencart/upload/* . && \
+    rm -rf opencart.zip opencart && \
+    mv config-dist.php config.php && \
+    mv admin/config-dist.php admin/config.php && \
+    chmod -R 777 .
+
+ADD entrypoint-dev.sh /usr/local/bin/opencart-entrypoint
+
+RUN chmod +x /usr/local/bin/opencart-entrypoint
+
+ENTRYPOINT opencart-entrypoint

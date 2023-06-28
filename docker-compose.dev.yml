@@ -1,0 +1,34 @@
+version: "3.1"
+
+services:
+  opencart:
+    build:
+      context: docker
+      dockerfile: Dockerfile.dev
+      args:
+        OPENCART_VERSION:
+        APP_PORT:
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    depends_on:
+      - mysql
+    links:
+      - mysql
+    env_file: .env
+    volumes:
+      - opencart:/opt/opencart
+      - ./src:/opt/opencart/extension/woovi
+
+  mysql:
+    image: mysql:${MYSQL_VERSION}
+    ports:
+      - ${MYSQL_PORT}:3306
+    env_file: .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  opencart:
+  mysql-data:

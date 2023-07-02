@@ -1,0 +1,14 @@
+/tests export-ignore
+.gitignore export-ignore
+.editorconfig export-ignore
+README.md export-ignore
+.gitattributes export-ignore
+phpstan.neon.dist export-ignore
+phpunit.xml.dist export-ignore
+*.png export-ignore
+.github export-ignore
+RoboFile.php export-ignore
+CONTRIBUTING.md export-ignore
+docker-compose.dev.yml export-ignore
+
+*.php diff=php

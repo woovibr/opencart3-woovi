@@ -27,6 +27,7 @@ class Woovi extends Controller
                     "href" => $this->url->link(
                         "common/dashboard",
                         http_build_query(["user_token" => $this->session->data["user_token"]]),
+                    ),
                 ],
                 [
                     "text" => $this->language->get("text_extension"),
@@ -40,12 +41,10 @@ class Woovi extends Controller
                         http_build_query(
                             [
                                 "user_token" => $this->session->data["user_token"],
+                                "module_id" => $this->request->get["module_id"] ?? null
                             ]
-
-                            + isset($this->request->get["module_id"])
-                                ? ["module_id" => $this->request->get["module_id"]]
-                                : []
                         ),
+                    ),
                 ],
             ],
 
@@ -57,7 +56,7 @@ class Woovi extends Controller
             ),
             "back" => $marketplaceLink,
 
-            "module_woovi_status" => $this->config->get("module_woovi_status"),
+            "payment_woovi_status" => $this->config->get("payment_woovi_status"),
 
             "header" =>  $this->load->controller("common/header"),
             "column_left" => $this->load->controller("common/column_left"),
@@ -68,5 +67,15 @@ class Woovi extends Controller
     public function save()
     {
         $this->load->language("extension/woovi/payment/woovi");
+    }
+
+    public function install()
+    {
+        $this->load->model("extension/woovi/payment/woovi");
+        $this->model_extension_woovi_payment_woovi->install();
+    }
+
+    public function uninstall()
+    {
     }
 }

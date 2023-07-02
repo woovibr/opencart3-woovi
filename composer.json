@@ -7,10 +7,17 @@
         "php": "^7.4 || ^8.0"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.19"
+        "friendsofphp/php-cs-fixer": "^3.19",
+        "consolidation/robo": "^4",
+        "vlucas/phpdotenv": "^5.5"
     },
     "scripts": {
         "style:check": "php-cs-fixer fix . --dry-run --diff --format=txt --verbose",
-        "style:fix": "php-cs-fixer fix ."
+        "style:fix": "php-cs-fixer fix .",
+        "robo": "vendor-bin/robo"
+    },
+    "config": {
+        "bin-dir": "vendor-bin",
+        "vendor-dir": "extension/woovi/system/library/woovi/vendor"
     }
 }

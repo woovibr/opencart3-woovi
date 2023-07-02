@@ -8,16 +8,15 @@ services:
       args:
         OPENCART_VERSION:
         APP_PORT:
+        OPENCART_PATH:
     ports:
       - ${APP_PORT}:${APP_PORT}
     depends_on:
       - mysql
-    links:
-      - mysql
     env_file: .env
     volumes:
-      - opencart:/opt/opencart
-      - ./src:/opt/opencart/extension/woovi
+      - .:${WOOVI_EXTENSION_PATH}
+      - opencart:${OPENCART_PATH}
 
   mysql:
     image: mysql:${MYSQL_VERSION}
@@ -30,5 +29,5 @@ services:
       - mysql-data:/var/lib/mysql
 
 volumes:
-  opencart:
   mysql-data:
+  opencart:

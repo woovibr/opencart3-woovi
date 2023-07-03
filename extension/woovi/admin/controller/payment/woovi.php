@@ -4,13 +4,19 @@ namespace Opencart\Admin\Controller\Extension\Woovi\Payment;
 
 use Opencart\System\Engine\Controller;
 
+/**
+ * Settings page for Woovi extension.
+ */
 class Woovi extends Controller
 {
+    /**
+     * Show or savesettings.
+     */
     public function index(): void
     {
         $this->load->language("extension/woovi/payment/woovi");
 
-        $this->document->setTitle($this->language->get("document_title"));
+        $this->document->setTitle($this->language->get("heading_title"));
 
         $marketplaceLink = $this->url->link(
             "marketplace/extension",
@@ -21,61 +27,126 @@ class Woovi extends Controller
         );
 
         $this->response->setOutput($this->load->view("extension/woovi/payment/woovi", [
-            "breadcrumbs" => [
-                [
-                    "text" => $this->language->get("text_home"),
-                    "href" => $this->url->link(
-                        "common/dashboard",
-                        http_build_query(["user_token" => $this->session->data["user_token"]]),
-                    ),
-                ],
-                [
-                    "text" => $this->language->get("text_extension"),
-                    "href" => $marketplaceLink,
-                ],
-                [
-                    "text" => $this->language->get("document_title"),
-                    "href" => $this->url->link(
-                        "extension/woovi/payment/woovi",
+            "breadcrumbs" => $this->makeBreadcrumbs($marketplaceLink),
 
-                        http_build_query(
-                            [
-                                "user_token" => $this->session->data["user_token"],
-                                "module_id" => $this->request->get["module_id"] ?? null
-                            ]
-                        ),
-                    ),
-                ],
-            ],
-
-            "save" => $this->url->link(
-                "extension/woovi/payment/woovi.save",
+            // Routes
+            "save_route" => $this->url->link(
+                "extension/woovi/payment/woovi|save",
                 http_build_query([
                     "user_token" => $this->session->data["user_token"],
                 ])
             ),
-            "back" => $marketplaceLink,
+            "previous_route" => $marketplaceLink,
 
+            // Settings
             "payment_woovi_status" => $this->config->get("payment_woovi_status"),
+            "payment_woovi_app_id" => $this->config->get("payment_woovi_app_id"),
 
-            "header" =>  $this->load->controller("common/header"),
-            "column_left" => $this->load->controller("common/column_left"),
-            "footer" => $this->load->controller("common/footer"),
+            // Components
+            "components" => $this->makeSettingsPageComponents(),
+
+            // Transalations
+            "lang" => $this->language->all(),
         ]));
     }
 
+    /**
+     * Save settings from HTTP POSTed payload.
+     */
     public function save()
     {
         $this->load->language("extension/woovi/payment/woovi");
+
+        if (! $this->user->hasPermission("modify", "extension/woovi/payment/woovi")) {
+            return $this->emitJson([
+                "error" => [
+                    "warning" => $this->language->get("woovi_permission_error"),
+                ],
+            ]);
+        }
+
+        $this->load->model("setting/setting");
+
+        $fillableSettings = [
+            "payment_woovi_status",
+            "payment_woovi_app_id",
+        ];
+
+        $updatedSettings = array_filter(
+            $this->request->post,
+            fn (string $key) => in_array($key, $fillableSettings),
+            ARRAY_FILTER_USE_KEY
+        );
+
+        $this->model_setting_setting->editSetting("payment_woovi", $updatedSettings);
+
+        return $this->emitJson([
+            "success" => $this->language->get("woovi_updated_settings_message"),
+        ]);
     }
 
+    /**
+     * Run installation.
+     */
     public function install()
     {
         $this->load->model("extension/woovi/payment/woovi");
         $this->model_extension_woovi_payment_woovi->install();
     }
 
-    public function uninstall()
+    /**
+     * Encode given data as JSON and emit it with correct `Content-type`.
+     *
+     * @param mixed $data
+     */
+    private function emitJson($data): void
     {
+        $this->response->addHeader("Content-Type: application/json");
+        $this->response->setOutput(json_encode($data));
+    }
+
+    /**
+     * Make breadcrumbs for settings page.
+     */
+    private function makeBreadcrumbs(string $marketplaceLink): array
+    {
+        return [
+            [
+                "text" => $this->language->get("woovi_home_breadcrumb"),
+                "href" => $this->url->link(
+                    "common/dashboard",
+                    http_build_query(["user_token" => $this->session->data["user_token"]]),
+                ),
+            ],
+            [
+                "text" => $this->language->get("woovi_extensions_breadcrumb"),
+                "href" => $marketplaceLink,
+            ],
+            [
+                "text" => $this->language->get("heading_title"),
+                "href" => $this->url->link(
+                    "extension/woovi/payment/woovi",
+
+                    http_build_query(
+                        [
+                            "user_token" => $this->session->data["user_token"],
+                            "module_id" => $this->request->get["module_id"] ?? null
+                        ]
+                    ),
+                ),
+            ],
+        ];
+    }
+
+    /**
+     * Render components for settings page.
+     */
+    private function makeSettingsPageComponents(): array
+    {
+        return [
+            "header" =>  $this->load->controller("common/header"),
+            "column_left" => $this->load->controller("common/column_left"),
+            "footer" => $this->load->controller("common/footer"),
+        ];
     }
 }

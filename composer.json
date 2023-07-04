@@ -24,6 +24,5 @@
         "allow-plugins": {
             "php-http/discovery": true
         }
-        "vendor-dir": "extension/woovi/system/library/woovi/vendor"
     }
 }

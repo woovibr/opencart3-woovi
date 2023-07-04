@@ -26,6 +26,8 @@ class Woovi extends Controller
             ])
         );
 
+        $this->load->model("localisation/order_status");
+
         $this->response->setOutput($this->load->view("extension/woovi/payment/woovi", [
             "breadcrumbs" => $this->makeBreadcrumbs($marketplaceLink),
 
@@ -41,6 +43,10 @@ class Woovi extends Controller
             // Settings
             "payment_woovi_status" => $this->config->get("payment_woovi_status"),
             "payment_woovi_app_id" => $this->config->get("payment_woovi_app_id"),
+            "payment_woovi_sort_order" => $this->config->get("payment_woovi_sort_order"),
+            "payment_woovi_order_status_id" => $this->config->get("payment_woovi_order_status_id"),
+
+            "order_statuses" => $this->model_localisation_order_status->getOrderStatuses(),
 
             // Components
             "components" => $this->makeSettingsPageComponents(),
@@ -53,16 +59,17 @@ class Woovi extends Controller
     /**
      * Save settings from HTTP POSTed payload.
      */
-    public function save()
+    public function save(): void
     {
         $this->load->language("extension/woovi/payment/woovi");
 
         if (! $this->user->hasPermission("modify", "extension/woovi/payment/woovi")) {
-            return $this->emitJson([
+            $this->emitJson([
                 "error" => [
                     "warning" => $this->language->get("woovi_permission_error"),
                 ],
             ]);
+            return;
         }
 
         $this->load->model("setting/setting");
@@ -70,6 +77,8 @@ class Woovi extends Controller
         $fillableSettings = [
             "payment_woovi_status",
             "payment_woovi_app_id",
+            "payment_woovi_sort_order",
+            "payment_woovi_order_status_id",
         ];
 
         $updatedSettings = array_filter(
@@ -80,7 +89,7 @@ class Woovi extends Controller
 
         $this->model_setting_setting->editSetting("payment_woovi", $updatedSettings);
 
-        return $this->emitJson([
+        $this->emitJson([
             "success" => $this->language->get("woovi_updated_settings_message"),
         ]);
     }
@@ -90,8 +99,21 @@ class Woovi extends Controller
      */
     public function install()
     {
+        // TODO: Check if user can modify this extension.
+
         $this->load->model("extension/woovi/payment/woovi");
         $this->model_extension_woovi_payment_woovi->install();
+    }
+
+    /**
+     * Run uninstallation.
+     */
+    public function uninstall()
+    {
+        // TODO: Check if user can modify this extension.
+
+        $this->load->model("extension/woovi/payment/woovi");
+        $this->model_extension_woovi_payment_woovi->uninstall();
     }
 
     /**

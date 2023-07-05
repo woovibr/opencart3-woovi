@@ -30,11 +30,7 @@ class WooviEvents extends Controller
         $data["content_bottom"] .= "<div id=\"woovi-order\"></div>";
 
         // We add our plugin's JavaScript code before the closing body tag.
-        $data["footer"] = str_replace(
-            "</body>",
-            '<script src="'. $this->getPluginUrl($correlationID) .'"></script></body>',
-            $data["footer"]
-        );
+        $data["footer"] = $this->addJsPluginToFooter($data["footer"], $correlationID);
     }
 
     /**
@@ -73,6 +69,49 @@ class WooviEvents extends Controller
         // Store latest order for future requests.
         // OpenCart removes order ID from the session on `checkout/success` controller.
         $this->session->data["woovi_last_order_id"] = $lastOrderId;
+    }
+
+    /**
+     * Handle "catalog/view/account/order_info/before" event.
+     * 
+     * This adds a button to display the order's Pix Qr Code.
+     * 
+     * @see https://developers.woovi.com/docs/plugin#criando-o-plugin-de-order
+     */
+    public function handleCatalogViewAccountOrderInfoBeforeEvent(&$route, &$data)
+    {
+        // Ignore non-Pix payments.
+        if ($data["payment_method"] != "Pix") return;
+
+        // Fetch correlationID using the opencart order id.
+        $this->load->model("extension/woovi/payment/woovi_order");
+
+        $wooviOrder = $this->model_extension_woovi_payment_woovi_order->getWooviOrderByOpencartOrderId($data["order_id"]);
+
+        if (empty($wooviOrder)) return;
+
+        $correlationID = $wooviOrder["woovi_correlation_id"];
+
+        // The `content_bottom` variable is used in the Twig template to
+        // display HTML code, and it appears to be usually empty.
+        // We put at the end of this variable the Woovi order
+        // used by JS plugin.
+        $data["content_bottom"] .= '<div id="woovi-order"></div>';
+
+        // Inject Woovi plugin to footer.
+        $data["footer"] = $this->addJsPluginToFooter($data["footer"], $correlationID);
+    }
+
+    /**
+     * We add our plugin's JavaScript code before the closing body tag on footer.
+     */
+    private function addJsPluginToFooter(string $footerHtml, string $correlationID): string
+    {
+        return str_replace(
+            "</body>",
+            '<script src="'. $this->getPluginUrl($correlationID) .'"></script></body>',
+            $footerHtml,
+        );
     }
 
     /**

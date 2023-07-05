@@ -16,7 +16,10 @@
     "scripts": {
         "style:check": "php-cs-fixer fix . --dry-run --diff --format=txt --verbose",
         "style:fix": "php-cs-fixer fix .",
-        "robo": "vendor-bin/robo"
+        "robo": [
+            "Composer\\Config::disableProcessTimeout",
+            "vendor-bin/robo"
+        ]
     },
     "config": {
         "bin-dir": "vendor-bin",

@@ -56,8 +56,18 @@ class Woovi extends Model
     {
         $this->load->model("setting/event");
 
+        $this->model_setting_event->deleteEventByCode("woovi_catalog_view_account_order_info_before");
         $this->model_setting_event->deleteEventByCode("woovi_catalog_view_common_success_before");
         $this->model_setting_event->deleteEventByCode("woovi_catalog_controller_checkout_success_before");
+
+        $this->model_setting_event->addEvent([
+            "code" => "woovi_catalog_view_account_order_info_before",
+            "description" => "Add Pix Qr Code display button to order info page.",
+            "trigger" => "catalog/view/account/order_info/before",
+            "action" => "extension/woovi/payment/woovi_events|handleCatalogViewAccountOrderInfoBeforeEvent",
+            "status" => true,
+            "sort_order" => 0,
+        ]);
 
         $this->model_setting_event->addEvent([
             "code" => "woovi_catalog_controller_checkout_success_before",

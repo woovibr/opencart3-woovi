@@ -9,6 +9,7 @@ services:
         OPENCART_VERSION:
         APP_PORT:
         OPENCART_PATH:
+        OPENCART_STORAGE_PATH:
     ports:
       - ${APP_PORT}:${APP_PORT}
     depends_on:
@@ -17,7 +18,7 @@ services:
     volumes:
       - .:${WOOVI_EXTENSION_PATH}
       - opencart:${OPENCART_PATH}
-
+      - opencart_storage:${OPENCART_STORAGE_PATH}
   mysql:
     image: mysql:${MYSQL_VERSION}
     ports:
@@ -31,3 +32,4 @@ services:
 volumes:
   mysql-data:
   opencart:
+  opencart_storage:

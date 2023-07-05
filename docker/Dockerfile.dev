@@ -21,20 +21,24 @@ ARG OPENCART_PATH
 ARG APP_PORT
 
 RUN sed -ri -e "s!/var/www/html!${OPENCART_PATH}!g" /etc/apache2/sites-available/*.conf && \
-    sed -ri -e "s!/var/www/!${OPENCART_PATH}/!g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf && \
-    sed -ri -e "s!80!${APP_PORT}!g" /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
-
-VOLUME ${OPENCART_PATH}
-WORKDIR ${OPENCART_PATH}
+    sed -ri -e "s!80!${APP_PORT}!g" /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf && \
+    sed -ri -e "s!/var/www/!${OPENCART_PATH}/!g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 # Install OpenCart
+ARG OPENCART_STORAGE_PATH
+
+VOLUME ${OPENCART_PATH}
+VOLUME ${OPENCART_STORAGE_PATH}
+
+WORKDIR ${OPENCART_PATH}
+
 ARG OPENCART_VERSION
 
 ADD "https://github.com/opencart/opencart/releases/download/$OPENCART_VERSION/opencart-$OPENCART_VERSION.zip" opencart.zip
 
-RUN unzip opencart.zip -d opencart-src && \
-    cp -r opencart-src/upload/* . && \
-    rm -rf opencart.zip opencart-src && \
+RUN unzip opencart.zip -d opencart && \
+    cp -r opencart/upload/* . && \
+    rm -rf opencart.zip opencart && \
     mv config-dist.php config.php && \
     mv admin/config-dist.php admin/config.php && \
     chmod -R 777 .

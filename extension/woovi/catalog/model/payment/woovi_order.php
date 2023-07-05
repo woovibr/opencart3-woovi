@@ -39,9 +39,20 @@ class WooviOrder extends Model
     public function getWooviOrderByCorrelationID(string $correlationID)
     {
         return $this->db->query(
-            "SELECT * FROM `" . DB_PREFIX . "woovi_order` WHERE `woovi_correlation_id` = '" . $correlationID . "'"
+            "SELECT * FROM `" . DB_PREFIX . "woovi_order` WHERE `woovi_correlation_id` = '" . $this->db->escape($correlationID) . "'"
         )->row;
     }
+
+    /**
+     * Get an Woovi order by OpenCart order ID.
+     */
+    public function getWooviOrderByOpencartOrderId(string $opencartOrderId)
+    {
+        return $this->db->query(
+            "SELECT * FROM `" . DB_PREFIX . "woovi_order` WHERE `opencart_order_id` = '" . $this->db->escape($opencartOrderId) . "'"
+        )->row;
+    }
+
 
     /**
      * Get order total value in cents.
@@ -49,7 +60,7 @@ class WooviOrder extends Model
     public function getTotalValueInCents(int $opencartOrderId): int
     {
         return $this->db->query(
-            "SELECT FLOOR(`total` * 100) AS `total` FROM `" . DB_PREFIX . "order` WHERE `order_id` = '" . (int) $opencartOrderId . "'"
+            "SELECT FLOOR(`total` * 100) AS `total` FROM `" . DB_PREFIX . "order` WHERE `order_id` = '" . (int) $this->db->escape($opencartOrderId) . "'"
         )->row["total"];
     }
 }

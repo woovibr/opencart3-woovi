@@ -1,50 +1,82 @@
-# An image with OpenCart installed
+FROM ubuntu:22.04
 
-FROM php:8.1-apache
+# Configure Timezone
+ENV TIMEZONE=UTC
 
-# Use development default settings
-RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
+RUN ln -snf /usr/share/zoneinfo/$TIMEZONE /etc/localtime && \
+    echo $TIMEZONE > /etc/timezone
 
-# Configure PHP extensions and Composer
-RUN apt-get update && apt-get upgrade -y && apt-get install -y git curl zip nano vim unzip wget netcat-traditional
+# Install tools
+ENV DEBIAN_FRONTEND=noninteractive
 
-ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN apt-get update && \
+    apt-get install -y \
+        gnupg curl ca-certificates wget netcat-traditional \
+        zip unzip git software-properties-common && \
+    curl -sS 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14aa40ec0831756756d7f66c4f4ea0aae5267a6c' | \
+        gpg --dearmor | \
+        tee /usr/share/keyrings/ppa_ondrej_php.gpg > /dev/null && \
+    echo "deb [signed-by=/usr/share/keyrings/ppa_ondrej_php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu jammy main" > /etc/apt/sources.list.d/ppa_ondrej_php.list
 
-RUN chmod +x /usr/local/bin/install-php-extensions && \
-    install-php-extensions gd zip mysqli pdo_mysql intl xdebug @composer
+# Install PHP dependencies
+RUN apt-get update && \
+    apt-get install -y php8.1-cli \
+       php8.1-gd php8.1-zip php8.1-curl \
+       php8.1-mysql php8.1-mbstring php8.1-xml \
+       php8.1-xdebug
 
-# Configure Apache
-RUN a2enmod rewrite && echo "ServerName docker" >> /etc/apache2/apache2.conf
+# Cleanup
+RUN apt-get -y autoremove && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Configure document root and port
+# Configure PHP
+COPY php.ini-development /etc/php8.1/php.ini
+COPY xdebug.ini /etc/php8.1/conf.d/xdebug.ini
+
+# Add Composer
+RUN wget https://getcomposer.org/composer-stable.phar -O /usr/local/bin/composer && chmod +x /usr/local/bin/composer
+
+# Configure OpenCart
+ARG EXTENSION_PATH
 ARG OPENCART_PATH
+ARG OPENCART_STORAGE_PATH
+ARG OPENCART_VERSION
+ARG DOCKER_USER
 ARG APP_PORT
+ARG USER_ID
+ARG GROUP_ID
 
-RUN sed -ri -e "s!/var/www/html!${OPENCART_PATH}!g" /etc/apache2/sites-available/*.conf && \
-    sed -ri -e "s!80!${APP_PORT}!g" /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf && \
-    sed -ri -e "s!/var/www/!${OPENCART_PATH}/!g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+# Add entrypoint
+COPY entrypoint-dev.sh /usr/local/bin/docker-entrypoint-dev
+RUN chmod +x /usr/local/bin/docker-entrypoint-dev
+
+# Add a new user
+RUN groupadd -g ${GROUP_ID} $DOCKER_USER && \
+    useradd -l -u ${USER_ID} -g $DOCKER_USER $DOCKER_USER && \
+    install -d -m 0777 -o $DOCKER_USER -g $DOCKER_USER /home/$DOCKER_USER
+USER $DOCKER_USER
 
 # Install OpenCart
-ARG OPENCART_STORAGE_PATH
+VOLUME $OPENCART_PATH
+VOLUME $OPENCART_STORAGE_PATH
 
-VOLUME ${OPENCART_PATH}
-VOLUME ${OPENCART_STORAGE_PATH}
+WORKDIR $OPENCART_PATH
 
-WORKDIR ${OPENCART_PATH}
+RUN curl -o opencart.zip -fL "https://github.com/opencart/opencart/releases/download/$OPENCART_VERSION/opencart-$OPENCART_VERSION.zip"
 
-ARG OPENCART_VERSION
-
-ADD "https://github.com/opencart/opencart/releases/download/$OPENCART_VERSION/opencart-$OPENCART_VERSION.zip" opencart.zip
-
+# Unpack Opencart
 RUN unzip opencart.zip -d opencart && \
     cp -r opencart/upload/* . && \
     rm -rf opencart.zip opencart && \
     mv config-dist.php config.php && \
     mv admin/config-dist.php admin/config.php && \
-    chmod -R 777 .
+    mkdir -p $OPENCART_STORAGE_PATH && \
+    chown -R $DOCKER_USER:$DOCKER_USER $OPENCART_PATH $OPENCART_STORAGE_PATH && \
+    chmod -R 777 . $OPENCART_STORAGE_PATH
 
-ADD entrypoint.dev.sh /usr/local/bin/opencart-entrypoint
+# Start OpenCart with extension enabled
+WORKDIR $EXTENSION_PATH
 
-RUN chmod +x /usr/local/bin/opencart-entrypoint
-
-ENTRYPOINT opencart-entrypoint
+EXPOSE $APP_PORT
+ENTRYPOINT ["docker-entrypoint-dev"]

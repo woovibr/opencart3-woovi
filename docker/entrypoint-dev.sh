@@ -1,7 +1,6 @@
 #!/bin/bash
 
-mkdir -p $WOOVI_EXTENSION_PATH
-cd $WOOVI_EXTENSION_PATH
+cd $EXTENSION_PATH
 
 # Install Composer dependencies.
 composer install
@@ -23,7 +22,5 @@ composer robo extension:link
 # Enable Woovi extension if not enabled.
 composer robo extension:enable
 
-# Start Apache HTTP server.
-echo "Starting Apache..."
-
-docker-php-entrypoint apache2-foreground
+# Start PHP built-in web server for development.
+composer robo opencart:serve

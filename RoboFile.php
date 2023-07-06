@@ -31,8 +31,8 @@ class RoboFile extends Tasks
      */
     public function extensionLink()
     {
-        $this->dotenv->required(["WOOVI_EXTENSION_PATH", "OPENCART_PATH"])->notEmpty();
-        $this->_symlink(getenv("WOOVI_EXTENSION_PATH") . "/extension/woovi", getenv("OPENCART_PATH") . "/extension/woovi");
+        $this->dotenv->required(["EXTENSION_PATH", "OPENCART_PATH"])->notEmpty();
+        $this->_symlink(getenv("EXTENSION_PATH") . "/extension/woovi", getenv("OPENCART_PATH") . "/extension/woovi");
     }
 
     /**
@@ -160,9 +160,10 @@ class RoboFile extends Tasks
      */
     public function opencartServe()
     {
-        $this->dotenv->required(["APP_PORT"])->notEmpty();
+        $this->dotenv->required(["OPENCART_PATH", "APP_PORT"])->notEmpty();
         $this->taskServer(getenv("APP_PORT"))
-            ->dir("opencart")
+            ->host("0.0.0.0")
+            ->dir(getenv("OPENCART_PATH"))
             ->run();
     }
 
@@ -183,7 +184,7 @@ class RoboFile extends Tasks
             "OPENCART_PATH",
             "OPENCART_STORAGE_PATH",
             "APP_URL",
-            "WOOVI_EXTENSION_PATH",
+            "EXTENSION_PATH",
         ])->notEmpty();
 
         // Remove install directory.

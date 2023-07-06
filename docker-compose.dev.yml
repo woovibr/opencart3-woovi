@@ -6,17 +6,21 @@ services:
       context: docker
       dockerfile: Dockerfile.dev
       args:
+        EXTENSION_PATH:
         OPENCART_VERSION:
         APP_PORT:
+        DOCKER_USER:
         OPENCART_PATH:
         OPENCART_STORAGE_PATH:
+        USER_ID:
+        GROUP_ID:
     ports:
       - ${APP_PORT}:${APP_PORT}
     depends_on:
       - mysql
     env_file: .env
     volumes:
-      - .:${WOOVI_EXTENSION_PATH}
+      - .:${EXTENSION_PATH}
       - opencart:${OPENCART_PATH}
       - opencart_storage:${OPENCART_STORAGE_PATH}
   mysql:

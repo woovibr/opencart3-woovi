@@ -23,12 +23,12 @@ class WooviOrder extends Model
                 `woovi_qrcode_image_url`,
                 `woovi_brcode`,
                 `woovi_pixkey`
-            ) VALUES ('" . $opencartOrderId . "',
-                '" . $wooviCorrelationID . "',
-                '" . $charge["paymentLinkUrl"] . "',
-                '" . $charge["qrCodeImage"] . "',
-                '" . $charge["brCode"] . "',
-                '" . $charge["pixKey"] . "'
+            ) VALUES ('" . $this->db->escape($opencartOrderId) . "',
+                '" . $this->db->escape($wooviCorrelationID) . "',
+                '" . $this->db->escape($charge["paymentLinkUrl"]) . "',
+                '" . $this->db->escape($charge["qrCodeImage"]) . "',
+                '" . $this->db->escape($charge["brCode"]) . "',
+                '" . $this->db->escape($charge["pixKey"]) . "'
             );"
         );
     }

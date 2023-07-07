@@ -1,31 +1,92 @@
-<div class="text-end">
-  <button type="button" id="button-confirm" class="btn btn-primary">{{ lang["woovi_button_confirm"] }}</button>
-</div>
+<form id="form-woovi">
+    <div class="mb-3 required">
+        <label
+            for="input-tax-id"
+            class="col-form-label"
+        >
+            {{ lang["woovi_tax_id_input"] }}
+        </label>
+        <input
+            type="text"
+            name="tax_id"
+            value=""
+            placeholder="{{ lang["woovi_tax_id_input"] }}"
+            id="input-tax-id"
+            class="form-control"
+        />
+        <div id="error-tax-id" class="invalid-feedback"></div>
+    </div>
+
+    <div class="d-inline-block pt-2 pd-2 w-100 text-end">
+        <button
+            type="button"
+            id="button-confirm"
+            class="btn btn-primary"
+        >
+            {{ lang["woovi_button_confirm"] }}
+        </button>
+    </div>
+</form>
 <script type="text/javascript"><!--
-$("#button-confirm").on('click', function () {
-    var element = this;
+    $("#button-confirm").on("click", function () {
+        var element = this;
 
-    $.ajax({
-        url: "index.php?route=extension/woovi/payment/woovi|confirm&language={{ language }}",
-        dataType: 'json',
-        beforeSend: function () {
-            $(element).button('loading');
-        },
-        complete: function () {
-            $(element).button('reset');
-        },
-        success: function (json) {
-            if (json['error']) {
-                $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + json['error'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
-            }
+        $.ajax({
+            url: "index.php?route=extension/woovi/payment/woovi|confirm&language={{ language }}",
+            data: $("#form-woovi").serialize(),
+            type: "POST",
 
-            if (json['redirect']) {
-                location = json['redirect'];
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded",
+            cache: false,
+            processData: false,
+
+            beforeSend: function () {
+                $(element).prop("disabled", true).addClass("loading");
+            },
+            complete: function () {
+                $(element).prop("disabled", false).removeClass("loading");
+            },
+
+            success: function (json) {
+                $(".alert-dismissible").remove();
+                $("#form-woovi").find(".is-invalid").removeClass("is-invalid");
+                $("#form-woovi").find(".invalid-feedback").removeClass("d-block");
+
+                if (json["error"]) {
+                    if (json["error"]["warning"]) {
+                        $("#alert").prepend('\
+                            <div class="alert alert-danger alert-dismissible">\
+                                <i class="fa-solid fa-circle-exclamation"></i>'
+                                + json["error"]["warning"]
+                                + ' <button\
+                                        type="button"\
+                                        class="btn-close"\
+                                        data-bs-dismiss="alert"\
+                                    ></button>\
+                            </div>\
+                        ');
+                    }
+
+                    for (var key in json["error"]) {
+                        $("#input-" + key.replaceAll("_", "-"))
+                            .addClass("is-invalid")
+                            .find(".form-control, .form-select, .form-check-input, .form-check-label")
+                            .addClass("is-invalid");
+
+                        $("#error-" + key.replaceAll("_", "-"))
+                            .html(json["error"][key])
+                            .addClass("d-block");
+                    }
+                }
+
+                if (json["redirect"]) {
+                    location = json["redirect"];
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
             }
-        },
-        error: function (xhr, ajaxOptions, thrownError) {
-            console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
-        }
+        });
     });
-});
 //--></script>

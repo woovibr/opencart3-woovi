@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:20.04
 
 # Configure Timezone
 ENV TIMEZONE=UTC
@@ -9,33 +9,34 @@ RUN ln -snf /usr/share/zoneinfo/$TIMEZONE /etc/localtime && \
 # Install tools
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && \
-    apt-get install -y \
+RUN apt-get update \
+    && apt-get install -y \
         gnupg curl ca-certificates wget netcat-traditional \
-        zip unzip git software-properties-common && \
-    curl -sS 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14aa40ec0831756756d7f66c4f4ea0aae5267a6c' | \
-        gpg --dearmor | \
-        tee /usr/share/keyrings/ppa_ondrej_php.gpg > /dev/null && \
-    echo "deb [signed-by=/usr/share/keyrings/ppa_ondrej_php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu jammy main" > /etc/apt/sources.list.d/ppa_ondrej_php.list
+        zip unzip git software-properties-common \
+    && curl -sS "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14aa40ec0831756756d7f66c4f4ea0aae5267a6c" \
+        | gpg --dearmor \
+        | tee /usr/share/keyrings/ppa_ondrej_php.gpg > /dev/null \
+    && echo "deb [signed-by=/usr/share/keyrings/ppa_ondrej_php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu focal main" > /etc/apt/sources.list.d/ppa_ondrej_php.list
 
 # Install PHP dependencies
-RUN apt-get update && \
-    apt-get install -y php8.1-cli \
-       php8.1-gd php8.1-zip php8.1-curl \
-       php8.1-mysql php8.1-mbstring php8.1-xml \
-       php8.1-xdebug
+RUN apt-get update \
+    && apt-get install -y php8.0-cli \
+       php8.0-gd php8.0-zip php8.0-curl \
+       php8.0-mysql php8.0-mbstring php8.0-xml \
+       php8.0-xdebug
 
 # Cleanup
-RUN apt-get -y autoremove && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN apt-get -y autoremove \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Configure PHP
-COPY php.ini-development /etc/php8.1/php.ini
-COPY xdebug.ini /etc/php8.1/conf.d/xdebug.ini
+COPY php.ini-development /etc/php8.0/php.ini
+COPY xdebug.ini /etc/php8.0/conf.d/xdebug.ini
 
 # Add Composer
-RUN wget https://getcomposer.org/composer-stable.phar -O /usr/local/bin/composer && chmod +x /usr/local/bin/composer
+RUN wget https://getcomposer.org/composer-stable.phar -O /usr/local/bin/composer \
+    && chmod +x /usr/local/bin/composer
 
 # Configure OpenCart
 ARG EXTENSION_PATH
@@ -52,9 +53,9 @@ COPY entrypoint-dev.sh /usr/local/bin/docker-entrypoint-dev
 RUN chmod +x /usr/local/bin/docker-entrypoint-dev
 
 # Add a new user
-RUN groupadd -g ${GROUP_ID} $DOCKER_USER && \
-    useradd -l -u ${USER_ID} -g $DOCKER_USER $DOCKER_USER && \
-    install -d -m 0777 -o $DOCKER_USER -g $DOCKER_USER /home/$DOCKER_USER
+RUN groupadd -g ${GROUP_ID} $DOCKER_USER \
+    && useradd -l -u ${USER_ID} -g $DOCKER_USER $DOCKER_USER \
+    && install -d -m 0777 -o $DOCKER_USER -g $DOCKER_USER /home/$DOCKER_USER
 USER $DOCKER_USER
 
 # Install OpenCart
@@ -66,14 +67,14 @@ WORKDIR $OPENCART_PATH
 RUN curl -o opencart.zip -fL "https://github.com/opencart/opencart/releases/download/$OPENCART_VERSION/opencart-$OPENCART_VERSION.zip"
 
 # Unpack Opencart
-RUN unzip opencart.zip -d opencart && \
-    cp -r opencart/upload/* . && \
-    rm -rf opencart.zip opencart && \
-    mv config-dist.php config.php && \
-    mv admin/config-dist.php admin/config.php && \
-    mkdir -p $OPENCART_STORAGE_PATH && \
-    chown -R $DOCKER_USER:$DOCKER_USER $OPENCART_PATH $OPENCART_STORAGE_PATH && \
-    chmod -R 777 . $OPENCART_STORAGE_PATH
+RUN unzip opencart.zip -d opencart \
+    && cp -r opencart/upload/* . \
+    && rm -rf opencart.zip opencart \
+    && mv config-dist.php config.php \
+    && mv admin/config-dist.php admin/config.php \
+    && mkdir -p $OPENCART_STORAGE_PATH \
+    && chown -R $DOCKER_USER:$DOCKER_USER $OPENCART_PATH $OPENCART_STORAGE_PATH \
+    && chmod -R 777 . $OPENCART_STORAGE_PATH
 
 # Start OpenCart with extension enabled
 WORKDIR $EXTENSION_PATH

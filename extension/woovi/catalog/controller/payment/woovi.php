@@ -9,9 +9,17 @@ use Psr\Http\Client\ClientExceptionInterface;
 
 /**
  * Add endpoints for pix payment method.
+ * 
+ * @property \OpenPix\PhpSdk\Client $woovi_api_client
+ * @property \Woovi\Opencart\Logger $woovi_logger
  */
 class Woovi extends Controller
 {
+    /**
+     * Scope of log messages.
+     */
+    private const LOG_SCOPE = "catalog/checkout";
+
     /**
      * Called when the user selects the "Pix" payment method.
      *
@@ -47,10 +55,8 @@ class Woovi extends Controller
 
         $createChargeResult = $this->createWooviCharge($correlationID, $orderValueInCents, $customerData);
 
-        if (empty($createChargeResult["correlationID"]) || empty($createChargeResult["charge"])) {
-            $this->emitError($this->language->get("An error occurred while creating the Pix charge."));
-            return;
-        }
+        // An error ocurred and it is logged.
+        if (empty($createChargeResult)) return;
 
         $this->relateOrderWithWooviCharge($this->session->data["order_id"], $createChargeResult);
         $this->persistCorrelationIDToCheckoutSuccess($correlationID);
@@ -120,12 +126,9 @@ class Woovi extends Controller
     /**
      * Create an charge and send to Woovi API.
      */
-    private function createWooviCharge(string $correlationID, int $orderValueInCents, ?array $customerData): array
+    private function createWooviCharge(string $correlationID, int $orderValueInCents, ?array $customerData): ?array
     {
-        $this->load->controller("extension/woovi/startup/api"); // Setup API client.
-
-        /** @var \OpenPix\PhpSdk\Client $client */
-        $client = $this->registry->get("woovi_php_sdk");
+        $this->load->helper("extension/woovi/library"); // Setup API client & logger.
 
         $chargeData = [
             "correlationID" => $correlationID,
@@ -134,10 +137,27 @@ class Woovi extends Controller
         ];
 
         try {
-            return $client->charges()->create($chargeData);
-        } catch (Exception $e) {
-            $this->handleException($e);
+            $createChargeResult = $this->woovi_api_client->charges()->create($chargeData);
+        } catch (ApiErrorException|ClientExceptionInterface $e) {
+            $this->load->language("extension/woovi/payment/woovi");
+            $this->woovi_logger->error($e, self::LOG_SCOPE);
         }
+
+        // It could be an error in the App ID.
+        if (! empty($createChargeResult["errors"][0]["message"])) {
+            $this->woovi_logger->error(
+                $createChargeResult["errors"][0]["message"],
+                self::LOG_SCOPE
+            );
+        }
+
+        // We notify the user when there is any type of error.
+        if (empty($createChargeResult["correlationID"]) || empty($createChargeResult["charge"])) {
+            $this->emitError($this->language->get("An error occurred while creating the Pix charge."));
+            return null;
+        }
+
+        return $createChargeResult;
     }
 
     /**
@@ -181,22 +201,6 @@ class Woovi extends Controller
         if (! empty($taxID)) $customerData["taxID"] = $taxID;
 
         return $customerData;
-    }
-
-    /**
-     * Handle exceptions catched by extension.
-     */
-    private function handleException(Exception $e): void
-    {
-        $this->load->language("extension/woovi/payment/woovi");
-
-        if ($e instanceof ApiErrorException
-            || $e instanceof ClientExceptionInterface) {
-            $this->emitError($this->language->get("An error occurred while creating the Pix charge."));
-            return;
-        }
-
-        throw $e;
     }
 
     /**

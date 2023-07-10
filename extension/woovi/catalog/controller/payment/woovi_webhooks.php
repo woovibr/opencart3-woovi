@@ -6,6 +6,9 @@ use Opencart\System\Engine\Controller;
 
 /**
  * Invoked by the Woovi API.
+ * 
+ * @property \OpenPix\PhpSdk\Client $woovi_api_client
+ * @property \Woovi\Opencart\Logger $woovi_logger
  */
 class WooviWebhooks extends Controller
 {
@@ -15,7 +18,7 @@ class WooviWebhooks extends Controller
      */
     public function callback(): void
     {
-        $this->load->controller("extension/woovi/startup/api"); // Setup API client.
+        $this->load->helper("extension/woovi/library"); // Setup API client.
         $this->load->language("extension/woovi/payment/woovi");
         $this->load->model("extension/woovi/payment/woovi_order");
         $this->load->model("checkout/order");
@@ -32,10 +35,13 @@ class WooviWebhooks extends Controller
      */
     private function handleTransactionReceivedWebhook(array $payload): void
     {
+        $payload["charge"]["correlationID"] = "not-found-correlation-id";
+
         $order = $this->model_extension_woovi_payment_woovi_order->getOpencartOrderByCorrelationID($payload["charge"]["correlationID"]);
 
         if (empty($order)) {
-            $this->emitJson(["error" => "Order not found."]);
+            $this->woovi_logger->notice("Cound not find OpenCart order with correlation ID `" . $payload["charge"]["correlationID"] . "`", "catalog/webhooks");
+            $this->emitJson(["error" => "Order not found."], 404);
             return;
         }
 
@@ -59,13 +65,16 @@ class WooviWebhooks extends Controller
     private function getValidatedPayload(): ?array
     {        
         $rawPayload = file_get_contents("php://input");
-
-        /** @var \OpenPix\PhpSdk\Client $client */
-        $client = $this->registry->get("woovi_php_sdk");
-
         $signature = getallheaders()["x-webhook-signature"] ?? null;
        
-        if (empty($signature) || ! $client->webhooks()->isWebhookValid($rawPayload, $signature)) {
+        if (empty($signature) || ! $this->woovi_api_client->webhooks()->isWebhookValid($rawPayload, $signature)) {
+            $serializedRequest = json_encode($this->request, JSON_PRETTY_PRINT);
+
+            $this->woovi_logger->warning(
+                "Invalid webhook signature from request " . $serializedRequest,
+                "catalog/webhooks"
+            );
+
             $this->emitJson(["error" => "Invalid webhook signature."], 401);
             return null;
         }
@@ -76,6 +85,13 @@ class WooviWebhooks extends Controller
         if ($isJsonInvalid
             || ! is_array($payload)
             || ! $this->isWebhookPayloadValid($payload)) {
+            $serializedRequest = json_encode($this->request, JSON_PRETTY_PRINT);
+
+            $this->woovi_logger->warning(
+                "Invalid webhook payload from request " . $serializedRequest,
+                "catalog/webhooks"
+            );
+
             $this->emitJson(["error" => "Invalid webhook payload."], 400);
             return null;
         }

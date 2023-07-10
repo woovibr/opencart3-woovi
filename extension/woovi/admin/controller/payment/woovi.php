@@ -10,7 +10,7 @@ use Opencart\System\Engine\Controller;
 class Woovi extends Controller
 {
     /**
-     * Show or savesettings.
+     * Show or save settings.
      */
     public function index(): void
     {

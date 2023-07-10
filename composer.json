@@ -13,6 +13,11 @@
         "consolidation/robo": "^4",
         "vlucas/phpdotenv": "^5.5"
     },
+    "autoload": {
+        "psr-4": {
+            "Woovi\\Opencart\\": "extension/woovi/system/library/woovi/src"
+        }
+    },
     "scripts": {
         "style:check": "php-cs-fixer fix . --dry-run --diff --format=txt --verbose",
         "style:fix": "php-cs-fixer fix .",

@@ -53,6 +53,23 @@ class WooviOrder extends Model
         )->row;
     }
 
+    /**
+     * Get OpenCart order by correlationID or returns `null` if not found.
+     */
+    public function getOpencartOrderByCorrelationID(string $correlationID): ?array
+    {
+        $this->load->model("checkout/order");
+
+        $wooviOrder = $this->getWooviOrderByCorrelationID($correlationID);
+
+        if (empty($wooviOrder)) return null;
+        
+        $order = $this->model_checkout_order->getOrder($wooviOrder["opencart_order_id"]);
+
+        if (empty($order)) return null;
+
+        return $order;
+    }
 
     /**
      * Get order total value in cents.

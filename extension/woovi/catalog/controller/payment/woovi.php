@@ -48,7 +48,7 @@ class Woovi extends Controller
         $createChargeResult = $this->createWooviCharge($correlationID, $orderValueInCents, $customerData);
 
         if (empty($createChargeResult["correlationID"]) || empty($createChargeResult["charge"])) {
-            $this->emitError($this->language->get("woovi_api_error_message"));
+            $this->emitError($this->language->get("An error occurred while creating the Pix charge."));
             return;
         }
 
@@ -70,13 +70,13 @@ class Woovi extends Controller
     private function isConfirmationRequestValid(): bool
     {
         if (! isset($this->session->data["order_id"])) {
-            $this->emitError($this->language->get("woovi_error_order"));
+            $this->emitError($this->language->get("No order ID in the session!"));
             return false;
         }
 
         if (! isset($this->session->data["payment_method"])
             || $this->session->data["payment_method"] != "woovi") {
-            $this->emitError($this->language->get("woovi_error_payment_method"));
+            $this->emitError($this->language->get("Payment method is incorrect!"));
             return false;
         }
 
@@ -85,7 +85,7 @@ class Woovi extends Controller
         // Shows an error if it is invalid in both cases: CPF and CNPJ.
         if (! ($this->isCPFValid($taxID) ^ $this->isCNPJValid($taxID))) {
             $this->emitError([
-                "tax_id" => $this->language->get("woovi_error_tax_id"),
+                "tax_id" => $this->language->get("CPF/CNPJ is invalid!"),
             ]);
             return false;
         }
@@ -103,7 +103,7 @@ class Woovi extends Controller
         $this->load->model("checkout/order");
         $this->model_checkout_order->addHistory(
             $this->session->data["order_id"],
-            (int) $this->config->get("payment_woovi_order_status_id")
+            (int) $this->config->get("payment_woovi_order_status_when_waiting_id")
         );
     }
 
@@ -192,7 +192,7 @@ class Woovi extends Controller
 
         if ($e instanceof ApiErrorException
             || $e instanceof ClientExceptionInterface) {
-            $this->emitError($this->language->get("woovi_api_error_message"));
+            $this->emitError($this->language->get("An error occurred while creating the Pix charge."));
             return;
         }
 

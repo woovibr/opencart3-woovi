@@ -1,4 +1,5 @@
-{{ components["header"] }}{{ components["column_left"] }}
+{{ components["header"] }}
+{{ components["column_left"] }}
 
 <div id="content">
     <div class="page-header">
@@ -8,7 +9,7 @@
                     type="submit"
                     form="form-module"
                     data-bs-toggle="tooltip"
-                    title="{{ lang["woovi_save_button"] }}"
+                    title="{{ lang["Save"] }}"
                     class="btn btn-primary"
                 >
                     <i class="fa-solid fa-save"></i>
@@ -17,14 +18,14 @@
                 <a
                     href="{{ previous_route }}"
                     data-bs-toggle="tooltip"
-                    title="{{ lang["woovi_previous_page_button"] }}"
+                    title="{{ lang["Previous page"] }}"
                     class="btn btn-light"
                 >
                     <i class="fa-solid fa-reply"></i>
                 </a>
             </div>
 
-            <h1>{{ heading_title }}</h1>
+            <h1>{{ lang["heading_title"] }}</h1>
 
             <ol class="breadcrumb">
                 {% for breadcrumb in breadcrumbs %}
@@ -43,14 +44,19 @@
             <div class="card-header">
                 <i class="fa-solid fa-pencil"></i>
 
-                {{ lang["woovi_settings_page_title"] }}
+                {{ lang["Edit Pix extension"] }}
             </div>
 
             <div class="card-body">
-                <form id="form-module" action="{{ save_route }}" method="post" data-oc-toggle="ajax">
+                <form
+                    id="form-module"
+                    action="{{ save_route }}"
+                    method="post"
+                    data-oc-toggle="ajax"
+                >
                     <div class="row mb-3">
                         <label for="input-status" class="col-sm-2 col-form-label">
-                            {{ lang["woovi_status_input"] }}
+                            {{ lang["Status"] }}
                         </label>
                         <div class="col-sm-10">
                             <div class="form-check form-switch form-switch-lg">
@@ -75,14 +81,14 @@
 
                     <div class="row mb-3">
                         <label for="input-app-id" class="col-sm-2 col-form-label">
-                            {{ lang["woovi_app_id_input_label"] }}
+                            {{ lang["App ID"] }}
                         </label>
                         <div class="col-sm-10">
                             <input
                                 type="text"
                                 name="payment_woovi_app_id"
                                 value="{{ payment_woovi_app_id }}"
-                                placeholder="{{ lang["woovi_app_id_input_placeholder"] }}"
+                                placeholder="{{ lang["Enter your Woovi App ID"] }}"
                                 id="input-app-id"
                                 class="form-control"
                             />
@@ -94,14 +100,14 @@
                             for="input-sort-order"
                             class="col-sm-2 col-form-label"
                         >
-                            {{ lang["woovi_sort_order_input"] }}
+                            {{ lang["Sort Order"] }}
                         </label>
                         <div class="col-sm-10">
                             <input
                                 type="text"
                                 name="payment_woovi_sort_order"
                                 value="{{ payment_woovi_sort_order }}"
-                                placeholder="{{ lang["woovi_sort_order_input"] }}"
+                                placeholder="{{ lang["Sort Order"] }}"
                                 id="input-app-id"
                                 class="form-control"
                             />
@@ -113,17 +119,17 @@
                             for="input-order-status"
                             class="col-sm-2 col-form-label"
                         >
-                            {{ lang["woovi_order_status_input"] }}
+                            {{ lang["Change order status after issuing the pix to:"] }}
                         </label>
                         <div class="col-sm-10">
                             <select
-                                name="payment_woovi_order_status_id" id="input-order-status"
+                                name="payment_woovi_order_status_when_waiting_id" id="input-order-status"
                                 class="form-select"
                             >
                                 {% for order_status in order_statuses %}
                                     <option
                                         value="{{ order_status.order_status_id }}"
-                                        {% if order_status.order_status_id == payment_woovi_order_status_id %} selected="selected"{% endif %}
+                                        {% if order_status.order_status_id == payment_woovi_order_status_when_waiting_id %} selected="selected"{% endif %}
                                     >
                                         {{ order_status.name }}
                                     </option>
@@ -131,9 +137,62 @@
                             </select>
                         </div>
                     </div>
+
+                    <div class="row mb-3">
+                        <label
+                            for="input-order-status"
+                            class="col-sm-2 col-form-label"
+                        >
+                            {{ lang["Change order status after pix charge is paid to:"] }}
+                        </label>
+                        <div class="col-sm-10">
+                            <select
+                                name="payment_woovi_order_status_when_paid_id" id="input-order-status"
+                                class="form-select"
+                            >
+                                {% for order_status in order_statuses %}
+                                    <option
+                                        value="{{ order_status.order_status_id }}"
+                                        {% if order_status.order_status_id == payment_woovi_order_status_when_paid_id %} selected="selected"{% endif %}
+                                    >
+                                        {{ order_status.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <label
+                            for="input-notify-customer"
+                            class="col-sm-2 col-form-label"
+                        >
+                            {{ lang["Notify customer when order is paid?"] }}
+                        </label>
+                        <div class="col-sm-10">
+                            <div class="form-check form-switch form-switch-lg">
+                                <input
+                                    type="hidden"
+                                    name="payment_woovi_notify_customer"
+                                    value="0"
+                                />
+
+                                <input
+                                    type="checkbox"
+                                    name="payment_woovi_notify_customer"
+                                    value="1"
+                                    id="input-notify-customer"
+                                    class="form-check-input"
+
+                                    {% if payment_woovi_notify_customer %} checked{% endif %}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
 {{ components["footer"] }}

@@ -44,7 +44,9 @@ class Woovi extends Controller
             "payment_woovi_status" => $this->config->get("payment_woovi_status"),
             "payment_woovi_app_id" => $this->config->get("payment_woovi_app_id"),
             "payment_woovi_sort_order" => $this->config->get("payment_woovi_sort_order"),
-            "payment_woovi_order_status_id" => $this->config->get("payment_woovi_order_status_id"),
+            "payment_woovi_order_status_when_waiting_id" => $this->config->get("payment_woovi_order_status_when_waiting_id"),
+            "payment_woovi_order_status_when_paid_id" => $this->config->get("payment_woovi_order_status_when_paid_id"),
+            "payment_woovi_notify_customer" => $this->config->get("payment_woovi_notify_customer"),
 
             "order_statuses" => $this->model_localisation_order_status->getOrderStatuses(),
 
@@ -66,7 +68,7 @@ class Woovi extends Controller
         if (! $this->user->hasPermission("modify", "extension/woovi/payment/woovi")) {
             $this->emitJson([
                 "error" => [
-                    "warning" => $this->language->get("woovi_permission_error"),
+                    "warning" => $this->language->get("Warning: You do not have permission to modify Pix settings!"),
                 ],
             ]);
             return;
@@ -78,7 +80,9 @@ class Woovi extends Controller
             "payment_woovi_status",
             "payment_woovi_app_id",
             "payment_woovi_sort_order",
-            "payment_woovi_order_status_id",
+            "payment_woovi_order_status_when_waiting_id",
+            "payment_woovi_order_status_when_paid_id",
+            "payment_woovi_notify_customer",
         ];
 
         $updatedSettings = array_filter(
@@ -90,7 +94,7 @@ class Woovi extends Controller
         $this->model_setting_setting->editSetting("payment_woovi", $updatedSettings);
 
         $this->emitJson([
-            "success" => $this->language->get("woovi_updated_settings_message"),
+            "success" => $this->language->get("Success: You have modified Pix settings!"),
         ]);
     }
 
@@ -134,14 +138,14 @@ class Woovi extends Controller
     {
         return [
             [
-                "text" => $this->language->get("woovi_home_breadcrumb"),
+                "text" => $this->language->get("Home"),
                 "href" => $this->url->link(
                     "common/dashboard",
                     http_build_query(["user_token" => $this->session->data["user_token"]]),
                 ),
             ],
             [
-                "text" => $this->language->get("woovi_extensions_breadcrumb"),
+                "text" => $this->language->get("Extensions"),
                 "href" => $marketplaceLink,
             ],
             [

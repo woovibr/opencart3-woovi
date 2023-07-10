@@ -2,12 +2,12 @@
 
 $_["heading_title"] = "Pix";
 
-$_["woovi_button_confirm"] = "Confirm Order";
+$_["Confirm Order"] = "Confirm Order";
 
-$_["woovi_error_order_id"] = "No order ID in the session!";
-$_["woovi_error_payment_method"] = "Payment method is incorrect!";
+$_["No order ID in the session!"] = "No order ID in the session!";
+$_["Payment method is incorrect!"] = "Payment method is incorrect!";
 
-$_["woovi_error_tax_id"] = "CPF/CNPJ is invalid!";
-$_["woovi_tax_id_input"] = "CPF/CNPJ";
+$_["CPF/CNPJ is invalid!"] = "CPF/CNPJ is invalid!";
+$_["CPF/CNPJ"] = "CPF/CNPJ";
 
-$_["woovi_api_error_message"] = "An error occurred while creating the Pix charge.";
+$_["An error occurred while creating the Pix charge."] = "An error occurred while creating the Pix charge.";

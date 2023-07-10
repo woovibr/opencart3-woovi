@@ -2,22 +2,25 @@
 
 $_["heading_title"] = "Pix Payments";
 
-$_["woovi_home_breadcrumb"] = "Home";
-$_["woovi_extensions_breadcrumb"] = "Extensions";
+$_["Home"] = "Home";
+$_["Extensions"] = "Extensions";
 
-$_["woovi_save_button"] = "Save";
-$_["woovi_previous_page_button"] = "Previous page";
+$_["Save"] = "Save";
+$_["Previous page"] = "Previous page";
 
-$_["woovi_settings_page_title"] = "Edit Pix extension";
+$_["Edit Pix extension"] = "Edit Pix extension";
 
-$_["woovi_status_input"] = "Status";
+$_["Status"] = "Status";
 
-$_["woovi_app_id_input_label"] = "App ID";
-$_["woovi_app_id_input_placeholder"] = "Enter your Woovi App ID";
+$_["App ID"] = "App ID";
+$_["Enter your Woovi App ID"] = "Enter your Woovi App ID";
 
-$_["woovi_sort_order_input"] = "Sort Order";
+$_["Sort Order"] = "Sort Order";
 
-$_["woovi_order_status_input"] = "Order Status";
+$_["Change order status after issuing the pix to:"] = "Change order status after issuing the pix to:";
+$_["Change order status after pix charge is paid to:"] = "Change order status after pix charge is paid to:";
 
-$_["woovi_permission_error"] = "Warning: You do not have permission to modify Pix settings!";
-$_["woovi_updated_settings_message"] = "Success: You have modified Pix settings!";
+$_["Notify customer when order is paid?"] = "Notify customer when order is paid?";
+
+$_["Warning: You do not have permission to modify Pix settings!"] = "Warning: You do not have permission to modify Pix settings!";
+$_["Success: You have modified Pix settings!"] = "Success: You have modified Pix settings!";

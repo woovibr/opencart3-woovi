@@ -18,6 +18,7 @@ class Woovi extends Model
     {
         $this->installEvents();
         $this->createWooviOrderTable();
+        $this->installSettings();
     }
 
     /**
@@ -26,6 +27,55 @@ class Woovi extends Model
     public function uninstall()
     {
         $this->uninstallEvents();
+    }
+
+    /**
+     * Install default settings like order statuses ID's.
+     */
+    private function installSettings()
+    {
+        $this->load->model("setting/setting");
+
+        $settings = $this->model_setting_setting->getSetting("payment_woovi");
+
+        // Use "pending" as default waiting status.
+        // On OpenCart installer, the pending status ID is 1:
+        // https://github.com/opencart/opencart/blob/e3ae482e66671167b44f86e798f07f8084561117/upload/install/opencart.sql#L1578
+        if (empty($settings["payment_woovi_order_status_when_waiting_id"])) {
+            $settings["payment_woovi_order_status_when_waiting_id"] = $this->findOrderStatusIdByName(["Pendente", "Pending"], 1);
+        }
+
+        // Use "processing" as default paid status.
+        // On OpenCart installer, the processing status ID is 2:
+        // https://github.com/opencart/opencart/blob/e3ae482e66671167b44f86e798f07f8084561117/upload/install/opencart.sql#L1568
+        if (empty($settings["payment_woovi_order_status_when_paid_id"])) {
+            $settings["payment_woovi_order_status_when_paid_id"] = $this->findOrderStatusIdByName(["Processando", "Processing"], 2);
+        }
+
+        $this->model_setting_setting->editSetting("payment_woovi", $settings);
+    }
+
+    /**
+     * Looks for an ID that matches one of the names in the array or returns
+     * the default ID.
+     * 
+     * @param array<string> $possibleNames
+     */
+    private function findOrderStatusIdByName(array $possibleNames, int $defaultId): int
+    {
+        foreach ($possibleNames as $possibleName) {
+            $result = $this->db->query("
+                SELECT order_status_id FROM `" . DB_PREFIX . "order_status`
+                WHERE `name` LIKE '" . $possibleName . "'
+                ORDER BY `order_status_id` DESC
+            ");
+
+            if (! empty($result->row["order_status_id"])) {
+                return $result->row["order_status_id"];
+            }
+        }
+
+        return $defaultId;
     }
 
     /**

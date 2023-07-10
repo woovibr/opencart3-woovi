@@ -9,7 +9,7 @@ Welcome to the Woovi integration module with OpenCart!
 - Run the `./dev` command to bring up the Docker Compose services.
 - Wait for the PHP server to run:
 ![image](https://github.com/Open-Pix/opencart-woovi/assets/96352451/5a25081a-fd04-4ec1-bf67-c4c00ca29fa2)
-- Access the admin panel at <http://localhost/administration>.
+- Access the admin panel at <http://localhost/administration> with `opencart` as username and password.
 - Go to extensions page and select "Payments" as extension type:
 ![image](https://github.com/Open-Pix/opencart-woovi/assets/96352451/6764148d-5d90-4182-8d5e-bf87c1fba5dd)
 

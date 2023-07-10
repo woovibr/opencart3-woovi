@@ -53,8 +53,8 @@ COPY entrypoint-dev.sh /usr/local/bin/docker-entrypoint-dev
 RUN chmod +x /usr/local/bin/docker-entrypoint-dev
 
 # Add a new user
-RUN groupadd -g ${GROUP_ID} $DOCKER_USER \
-    && useradd -l -u ${USER_ID} -g $DOCKER_USER $DOCKER_USER \
+RUN groupadd -o -g ${GROUP_ID} $DOCKER_USER \
+    && useradd -o -l -u ${USER_ID} -g $DOCKER_USER $DOCKER_USER \
     && install -d -m 0777 -o $DOCKER_USER -g $DOCKER_USER /home/$DOCKER_USER
 USER $DOCKER_USER
 

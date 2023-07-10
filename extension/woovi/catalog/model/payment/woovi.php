@@ -19,7 +19,7 @@ class Woovi extends Model
         return [
             "title" => $this->language->get("heading_title"),
             "code" => "woovi",
-            "sort_order" => $this->config->get("payment_woovi_sort_order"),
+            "sort_order" => 0,
         ];
     }
 }

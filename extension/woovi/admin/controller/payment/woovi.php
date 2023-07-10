@@ -43,7 +43,6 @@ class Woovi extends Controller
             // Settings
             "payment_woovi_status" => $this->config->get("payment_woovi_status"),
             "payment_woovi_app_id" => $this->config->get("payment_woovi_app_id"),
-            "payment_woovi_sort_order" => $this->config->get("payment_woovi_sort_order"),
             "payment_woovi_order_status_when_waiting_id" => $this->config->get("payment_woovi_order_status_when_waiting_id"),
             "payment_woovi_order_status_when_paid_id" => $this->config->get("payment_woovi_order_status_when_paid_id"),
             "payment_woovi_notify_customer" => $this->config->get("payment_woovi_notify_customer"),
@@ -79,7 +78,6 @@ class Woovi extends Controller
         $fillableSettings = [
             "payment_woovi_status",
             "payment_woovi_app_id",
-            "payment_woovi_sort_order",
             "payment_woovi_order_status_when_waiting_id",
             "payment_woovi_order_status_when_paid_id",
             "payment_woovi_notify_customer",

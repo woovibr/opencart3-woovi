@@ -12,6 +12,7 @@ use Opencart\System\Engine\Model;
  * @property \Opencart\Admin\Model\Customer\CustomField $model_customer_custom_field
  * @property \Opencart\Admin\Model\Setting\Setting $model_setting_setting
  * @property \Opencart\Admin\Model\Setting\Event $model_setting_event
+ * @property \Opencart\Admin\Model\Setting\Extension $model_setting_extension
  * @property \Opencart\System\Library\DB $db
  */
 class Woovi extends Model
@@ -30,6 +31,7 @@ class Woovi extends Model
         $this->createWooviOrderTable();
         $this->installSettings();
         $this->installCustomFields();
+        $this->upgrade();
     }
 
     /**
@@ -209,5 +211,22 @@ class Woovi extends Model
 
         $this->model_setting_event->deleteEventByCode("woovi_catalog_view_common_success_before");
         $this->model_setting_event->deleteEventByCode("woovi_catalog_controller_checkout_success_before");
+    }
+
+    /**
+     * Run upgrades.
+     */
+    private function upgrade(): void
+    {
+        $this->load->model("setting/extension");
+
+        // Store latest upgraded version.
+        $manifest = json_decode(file_get_contents(__DIR__ . "/../../../install.json"), true);
+
+        $currentVersion = $manifest["version"];
+
+        $this->model_setting_setting->editSetting("thirdparty_payment_woovi", [
+            "thirdparty_payment_woovi_latest_upgrade" => $currentVersion,
+        ]);
     }
 }

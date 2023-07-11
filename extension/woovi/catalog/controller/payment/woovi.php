@@ -29,9 +29,12 @@ class Woovi extends Controller
     {
 		$this->load->language("extension/woovi/payment/woovi");
 
+        $showTaxIdInput = empty($this->getTaxIDFromSession());
+
 		return $this->load->view("extension/woovi/payment/woovi", [
             "language" => $this->config->get("config_language"),
             "lang" => $this->language->all(),
+            "show_tax_id_input" => $showTaxIdInput,
         ]);
 	}
 
@@ -86,17 +89,42 @@ class Woovi extends Controller
             return false;
         }
 
-        $taxID = $this->request->post["tax_id"] ?? "";
+        $taxID = $this->getTaxID() ?? "";
 
         // Shows an error if it is invalid in both cases: CPF and CNPJ.
         if (! ($this->isCPFValid($taxID) ^ $this->isCNPJValid($taxID))) {
-            $this->emitError([
-                "tax_id" => $this->language->get("CPF/CNPJ is invalid!"),
-            ]);
+            $error = ! empty($this->getTaxIDFromSession())
+                ? ["warning" => $this->language->get("CPF/CNPJ invalid! Change the CPF/CNPJ field in your account settings page or on this page if you see the field.")]
+                : ["tax_id" => $this->language->get("CPF/CNPJ invalid!")];
+            
+            $this->emitError($error);
+
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * Get CPF/CNPJ from session.
+     */
+    private function getTaxIDFromSession(): string
+    {
+        $taxIdCustomFieldId = $this->config->get("payment_woovi_tax_id_custom_field_id");
+        
+        return $this->session->data["customer"]["custom_field"][$taxIdCustomFieldId] ?? "";
+    }
+
+    /**
+     * Get CPF/CNPJ from session or request POSTed data.
+     */
+    private function getTaxID(): string
+    {
+        $taxID = $this->getTaxIDFromSession();
+
+        if (! empty($taxID)) return $taxID;
+
+        return $this->request->post["tax_id"] ?? "";
     }
 
     /**
@@ -188,7 +216,7 @@ class Woovi extends Controller
     private function getCustomerData(): ?array
     {
         $phone = $this->normalizePhone($this->customer->getTelephone());
-        $taxID = $this->request->post["tax_id"] ?? null;
+        $taxID = $this->getTaxID();
 
         $customer = $this->session->data["customer"];
 
@@ -255,7 +283,7 @@ class Woovi extends Controller
         }
 
         // Remove non-numeric characters from the CPF.
-        $cpf = preg_replace("/[^0-9]/", "", $cpf);
+        $cpf = preg_replace('/[^0-9]/', '', $cpf);
 
         // CPF length must be 11.
         if (strlen($cpf) != 11) {
@@ -263,7 +291,7 @@ class Woovi extends Controller
         }
 
         // Check if the CPF has 11 repeated digits.
-        if (preg_match("/(\d)\1{10}/", $cpf)) {
+        if (preg_match('/(\d)\1{10}/', $cpf)) {
             return false;
         }
 
@@ -302,7 +330,7 @@ class Woovi extends Controller
         }
 
         // Check if the CNPJ has repeating digits.
-        if (preg_match("/(\d)\1{13}/", $cnpj)) {
+        if (preg_match('/(\d)\1{13}/', $cnpj)) {
             return false;
         }
 

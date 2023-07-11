@@ -1,21 +1,23 @@
 <form id="form-woovi">
-    <div class="mb-3 required">
-        <label
-            for="input-tax-id"
-            class="col-form-label"
-        >
-            {{ lang["CPF/CNPJ"] }}
-        </label>
-        <input
-            type="text"
-            name="tax_id"
-            value=""
-            placeholder="{{ lang["CPF/CNPJ"] }}"
-            id="input-tax-id"
-            class="form-control"
-        />
-        <div id="error-tax-id" class="invalid-feedback"></div>
-    </div>
+    {% if show_tax_id_input %}
+        <div class="mb-3 required">
+            <label
+                for="input-tax-id"
+                class="col-form-label"
+            >
+                {{ lang["CPF/CNPJ"] }}
+            </label>
+            <input
+                type="text"
+                name="tax_id"
+                value=""
+                placeholder="{{ lang["CPF/CNPJ"] }}"
+                id="input-tax-id"
+                class="form-control"
+            />
+            <div id="error-tax-id" class="invalid-feedback"></div>
+        </div>
+    {% endif %}
 
     <div class="d-inline-block pt-2 pd-2 w-100 text-end">
         <button

@@ -170,6 +170,36 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="row mb-3">
+                        <label
+                            for="input-tax-id-custom-field-id"
+                            class="col-sm-2 col-form-label"
+                        >
+                            {{ lang["Which custom field to use for CPF/CNPJ?"] }}
+                        </label>
+                        <div class="col-sm-10">
+                            <select
+                                name="payment_woovi_tax_id_custom_field_id" id="input-tax-id-custom-field-id"
+                                class="form-select"
+                            >
+                                <option value="">{{ lang["None"] }}</option>
+
+                                {% for custom_field in custom_fields %}
+                                    <option
+                                        value="{{ custom_field.custom_field_id }}"
+                                        {% if custom_field.custom_field_id == payment_woovi_tax_id_custom_field_id %} selected="selected"{% endif %}
+                                    >
+                                        {{ custom_field.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            
+                            <a href="{{ create_custom_field_route }}">
+                                {{ lang["Create an custom field here."] }}
+                            </a>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>

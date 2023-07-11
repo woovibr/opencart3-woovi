@@ -18,6 +18,10 @@ class Woovi extends Controller
 
         $this->document->setTitle($this->language->get("heading_title"));
 
+        $tokenQuery = http_build_query([
+            "user_token" => $this->session->data["user_token"],
+        ]);
+
         $marketplaceLink = $this->url->link(
             "marketplace/extension",
             http_build_query([
@@ -27,18 +31,20 @@ class Woovi extends Controller
         );
 
         $this->load->model("localisation/order_status");
+        $this->load->model("customer/custom_field");
+
+        $orderStatuses = $this->model_localisation_order_status->getOrderStatuses();
+        $customFields = $this->model_customer_custom_field->getCustomFields([
+            "filter_status" => true
+        ]);
 
         $this->response->setOutput($this->load->view("extension/woovi/payment/woovi", [
             "breadcrumbs" => $this->makeBreadcrumbs($marketplaceLink),
 
             // Routes
-            "save_route" => $this->url->link(
-                "extension/woovi/payment/woovi|save",
-                http_build_query([
-                    "user_token" => $this->session->data["user_token"],
-                ])
-            ),
+            "save_route" => $this->url->link("extension/woovi/payment/woovi|save", $tokenQuery),
             "previous_route" => $marketplaceLink,
+            "create_custom_field_route" => $this->url->link("customer/custom_field", $tokenQuery),
 
             // Settings
             "payment_woovi_status" => $this->config->get("payment_woovi_status"),
@@ -46,8 +52,10 @@ class Woovi extends Controller
             "payment_woovi_order_status_when_waiting_id" => $this->config->get("payment_woovi_order_status_when_waiting_id"),
             "payment_woovi_order_status_when_paid_id" => $this->config->get("payment_woovi_order_status_when_paid_id"),
             "payment_woovi_notify_customer" => $this->config->get("payment_woovi_notify_customer"),
+            "payment_woovi_tax_id_custom_field_id" => $this->config->get("payment_woovi_tax_id_custom_field_id"),
 
-            "order_statuses" => $this->model_localisation_order_status->getOrderStatuses(),
+            "order_statuses" => $orderStatuses,
+            "custom_fields" => $customFields,
 
             // Components
             "components" => $this->makeSettingsPageComponents(),
@@ -81,6 +89,7 @@ class Woovi extends Controller
             "payment_woovi_order_status_when_waiting_id",
             "payment_woovi_order_status_when_paid_id",
             "payment_woovi_notify_customer",
+            "payment_woovi_tax_id_custom_field_id",
         ];
 
         $updatedSettings = array_filter(

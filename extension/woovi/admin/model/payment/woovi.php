@@ -8,25 +8,87 @@ use Opencart\System\Engine\Model;
  * This model integrates the extension with the OpenCart database.
  *
  * This adds the events and creates a table of relationships between orders and charges, for example.
+ * 
+ * @property \Opencart\Admin\Model\Customer\CustomField $model_customer_custom_field
+ * @property \Opencart\Admin\Model\Setting\Setting $model_setting_setting
+ * @property \Opencart\Admin\Model\Setting\Event $model_setting_event
+ * @property \Opencart\System\Library\DB $db
  */
 class Woovi extends Model
 {
     /**
+     * Regex for validating CPF/CNPJ field format.
+     */
+    private const TAX_ID_CUSTOM_FIELD_VALIDATION_REGEX = "/(^\d{3}\.\d{3}\.\d{3}\-\d{2}$)|(^\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}$)/";
+
+    /**
      * Installs the necessary structures for the extension to work, such as the table to track charges on orders.
      */
-    public function install()
+    public function install(): void
     {
         $this->installEvents();
         $this->createWooviOrderTable();
         $this->installSettings();
+        $this->installCustomFields();
     }
 
     /**
      * Executed when the extension is uninstalled.
      */
-    public function uninstall()
+    public function uninstall(): void
     {
         $this->uninstallEvents();
+    }
+
+    /**
+     * Install custom fields like CPF/CNPJ.
+     */
+    private function installCustomFields(): void
+    {
+        $settings = $this->model_setting_setting->getSetting("payment_woovi");
+
+        // Does not create if the extension has already been installed.
+        if (array_key_exists("payment_woovi_tax_id_custom_field_id", $settings)) return;
+
+        $this->load->model("customer/custom_field");
+        $this->load->model("localisation/language");
+
+        // Add same name for all languages.
+        $descriptions = [];
+
+        $languageIds = array_values(array_map(
+            fn ($language) => intval($language["language_id"]), $this->model_localisation_language->getLanguages()
+        ));
+
+        foreach ($languageIds as $languageId) {
+            $descriptions[$languageId] = [
+                "name" => "CPF/CNPJ",
+            ];
+        }
+
+        // Use default customer group ID.
+        $customerGroupId = intval($this->config->get("config_customer_group_id"));
+
+        $taxIdCustomFieldId = $this->model_customer_custom_field->addCustomField([
+            "custom_field_description" => $descriptions,
+            "type" => "text",
+            "validation" => self::TAX_ID_CUSTOM_FIELD_VALIDATION_REGEX,
+            "location" => "account",
+            "status" => 1,
+            "sort_order" => "",
+            "value" => "",
+            "custom_field_customer_group" => [
+                [
+                    "customer_group_id" => $customerGroupId,
+                    "required" => true,
+                ],
+            ],
+        ]);
+
+        // Store setting.
+        $settings["payment_woovi_tax_id_custom_field_id"] = $taxIdCustomFieldId;
+
+        $this->model_setting_setting->editSetting("payment_woovi", $settings);
     }
 
     /**

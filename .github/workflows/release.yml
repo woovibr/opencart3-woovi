@@ -22,7 +22,7 @@ jobs:
           php-version: 8.1
 
       - name: Install Robo task runner
-        run: wget -O robo https://robo.li/robo.phar && chmod +x robo
+        run: wget -O robo https://robo.li/robo.phar && chmod +x ./robo
 
       - name: Build extension
-        run: robo extension:build
+        run: ./robo extension:build

@@ -2,6 +2,7 @@
 
 use Robo\Tasks;
 use Dotenv\Dotenv;
+use StubsGenerator\{StubsGenerator, Finder};
 
 /**
  * This is project's console commands configuration for Robo task runner.
@@ -113,6 +114,42 @@ class RoboFile extends Tasks
     public function extensionBuild()
     {
         // TODO
+    }
+
+    /**
+     * Generate OpenCart stubs.
+     * 
+     * This is needed for linting and intellisense.
+     */
+    public function stubsGenerate(): void
+    {
+        $this->dotenv->required(["OPENCART_PATH"])->notEmpty();
+
+        $opencartPath = getenv("OPENCART_PATH");
+
+        $generator = new StubsGenerator();
+
+        $finder = Finder::create()->in($opencartPath);
+
+        $result = $generator->generate($finder)->prettyPrint();
+
+        $this->_mkdir("stubs");
+        $this->taskWriteToFile(__DIR__ . "/stubs/opencart.php")
+            ->text($result)
+            ->run();
+    }
+
+    /**
+     * Run extension linter.
+     */
+    public function extensionLint(): void
+    {
+        // Delete the stub file if you need regenerate stubs.
+        if (! file_exists(__DIR__ . "/stubs/opencart.php")) {
+            $this->stubsGenerate();
+        }
+        
+        $this->_exec("phpstan analyse");
     }
 
     /**

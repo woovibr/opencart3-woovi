@@ -1,0 +1,8 @@
+parameters:
+    level: max
+    paths:
+        - extension
+    excludePaths:
+        - extension/woovi/system/library/woovi/vendor/*
+    scanFiles:
+        - stubs/opencart.php

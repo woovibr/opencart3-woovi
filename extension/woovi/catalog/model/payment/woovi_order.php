@@ -7,11 +7,21 @@ use Opencart\System\Engine\Model;
 /**
  * This model relates OpenCart orders with charges on Woovi so we can
  * know which was the order for a specific charge, for example.
+ * 
+ * @property \Opencart\Catalog\Model\Checkout\Order $model_checkout_order
+ * @property \Opencart\System\Library\DB $db
+ * @property \Opencart\System\Engine\Loader $load
+ * 
+ * @phpstan-import-type Charge from \Opencart\Catalog\Controller\Extension\Woovi\Payment\Woovi
+ * @phpstan-type OpencartOrder array{order_id: string}
+ * @phpstan-type WooviOrderData array{opencart_order_id: int, woovi_correlation_id: string, woovi_payment_link_url: string, woovi_qrcode_image_url: string, woovi_brcode: string, woovi_pixkey: string}
  */
 class WooviOrder extends Model
 {
     /**
      * Relates a Woovi charge to an OpenCart order.
+     * 
+     * @param Charge $charge Woovi charge data.
      */
     public function relateOrderWithCharge(int $opencartOrderId, string $wooviCorrelationID, array $charge): void
     {
@@ -23,7 +33,7 @@ class WooviOrder extends Model
                 `woovi_qrcode_image_url`,
                 `woovi_brcode`,
                 `woovi_pixkey`
-            ) VALUES ('" . $this->db->escape($opencartOrderId) . "',
+            ) VALUES ('" . $this->db->escape(strval($opencartOrderId)) . "',
                 '" . $this->db->escape($wooviCorrelationID) . "',
                 '" . $this->db->escape($charge["paymentLinkUrl"]) . "',
                 '" . $this->db->escape($charge["qrCodeImage"]) . "',
@@ -34,27 +44,39 @@ class WooviOrder extends Model
     }
 
     /**
-     * Get an Woovi order by correlationID.
+     * Return an Woovi order by Woovi correlationID or an empty array if not found
+     * 
+     * @return WooviOrderData|array{}
      */
-    public function getWooviOrderByCorrelationID(string $correlationID)
+    public function getWooviOrderByCorrelationID(string $correlationID): array
     {
-        return $this->db->query(
+        /** @var object{row: WooviOrderData|array{}} $result */
+        $result = $this->db->query(
             "SELECT * FROM `" . DB_PREFIX . "woovi_order` WHERE `woovi_correlation_id` = '" . $this->db->escape($correlationID) . "'"
-        )->row;
+        );
+
+        return $result->row;
     }
 
     /**
-     * Get an Woovi order by OpenCart order ID.
+     * Return an Woovi order by OpenCart order ID or an empty array if not found.
+     * 
+     * @return WooviOrderData|array{}
      */
-    public function getWooviOrderByOpencartOrderId(string $opencartOrderId)
+    public function getWooviOrderByOpencartOrderId(int $opencartOrderId): array
     {
-        return $this->db->query(
-            "SELECT * FROM `" . DB_PREFIX . "woovi_order` WHERE `opencart_order_id` = '" . $this->db->escape($opencartOrderId) . "'"
-        )->row;
+        /** @var object{row: WooviOrderData|array{}} $result */
+        $result = $this->db->query(
+            "SELECT * FROM `" . DB_PREFIX . "woovi_order` WHERE `opencart_order_id` = '" . $this->db->escape(strval($opencartOrderId)) . "'"
+        );
+        
+        return $result->row;
     }
 
     /**
      * Get OpenCart order by correlationID or returns `null` if not found.
+     * 
+     * @return ?OpencartOrder
      */
     public function getOpencartOrderByCorrelationID(string $correlationID): ?array
     {
@@ -64,10 +86,11 @@ class WooviOrder extends Model
 
         if (empty($wooviOrder)) return null;
         
-        $order = $this->model_checkout_order->getOrder($wooviOrder["opencart_order_id"]);
+        $order = $this->model_checkout_order->getOrder(intval($wooviOrder["opencart_order_id"]));
 
         if (empty($order)) return null;
 
+        /** @var OpencartOrder $order */
         return $order;
     }
 
@@ -76,8 +99,11 @@ class WooviOrder extends Model
      */
     public function getTotalValueInCents(int $opencartOrderId): int
     {
-        return $this->db->query(
-            "SELECT FLOOR(`total` * 100) AS `total` FROM `" . DB_PREFIX . "order` WHERE `order_id` = '" . (int) $this->db->escape($opencartOrderId) . "'"
-        )->row["total"];
+        /** @var object{row: array{total: int}} $result */
+        $result = $this->db->query(
+            "SELECT FLOOR(`total` * 100) AS `total` FROM `" . DB_PREFIX . "order` WHERE `order_id` = '" . $this->db->escape(strval($opencartOrderId)) . "'"
+        );
+
+        return $result->row["total"];
     }
 }

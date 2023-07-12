@@ -6,6 +6,12 @@ use Opencart\System\Engine\Controller;
 
 /**
  * OpenCart event handlers.
+ * 
+ * @property \Opencart\System\Engine\Loader $load
+ * @property \Opencart\System\Library\Request $request
+ * @property \Opencart\System\Library\Session $session
+ * @property \Opencart\System\Engine\Config $config
+ * @property \Opencart\Catalog\Model\Extension\Woovi\Payment\WooviOrder $model_extension_woovi_payment_woovi_order
  */
 class WooviEvents extends Controller
 {
@@ -14,12 +20,13 @@ class WooviEvents extends Controller
      *
      * This adds the Woovi script along with an element in the HTML that will store a Woovi order on checkout success pages.
      *
+     * @param array{content_bottom: string, footer: string} &$data
      * @see https://developers.woovi.com/docs/plugin#criando-o-plugin-de-order
      */
-    public function handleCatalogViewCommonSuccessBeforeEvent(&$route, &$data, &$code)
+    public function handleCatalogViewCommonSuccessBeforeEvent(string &$route, array &$data): void
     {
         // Ignore non-checkout success pages.
-        if ($this->request->request["route"] !== "checkout/success") return;
+        if ($this->request->get["route"] !== "checkout/success") return;
 
         // Ignore non-Pix payments.
         if (empty($this->session->data["woovi_correlation_id"])) return;
@@ -45,7 +52,7 @@ class WooviEvents extends Controller
      * but OpenCart removes what the payment method and order id is from the session
      * before rendering the view.
      */
-    public function handleCatalogControllerCheckoutSuccessBeforeEvent()
+    public function handleCatalogControllerCheckoutSuccessBeforeEvent(): void
     {
         $lastOrderId = $this->session->data["order_id"] ?? $this->session->data["woovi_last_order_id"] ?? null;
 
@@ -61,7 +68,7 @@ class WooviEvents extends Controller
         // Ignore if correlationID is not registered.
         if (! $wooviOrder) return;
 
-        $wooviOpencartOrderId = (int) $wooviOrder["opencart_order_id"];
+        $wooviOpencartOrderId = intval($wooviOrder["opencart_order_id"]);
 
         // Prevents the plugin from rendering if the correlationID does not match
         // the lastest order.
@@ -79,9 +86,10 @@ class WooviEvents extends Controller
      *
      * This adds a button to display the order's Pix Qr Code.
      *
+     * @param array{content_bottom: string, footer: string, payment_method: string, order_id: string} &$data
      * @see https://developers.woovi.com/docs/plugin#criando-o-plugin-de-order
      */
-    public function handleCatalogViewAccountOrderInfoBeforeEvent(&$route, &$data)
+    public function handleCatalogViewAccountOrderInfoBeforeEvent(string &$route, array &$data): void
     {
         // Ignore non-Pix payments.
         if ($data["payment_method"] != "Pix") return;
@@ -89,7 +97,7 @@ class WooviEvents extends Controller
         // Fetch correlationID using the opencart order id.
         $this->load->model("extension/woovi/payment/woovi_order");
 
-        $wooviOrder = $this->model_extension_woovi_payment_woovi_order->getWooviOrderByOpencartOrderId($data["order_id"]);
+        $wooviOrder = $this->model_extension_woovi_payment_woovi_order->getWooviOrderByOpencartOrderId(intval($data["order_id"]));
 
         if (empty($wooviOrder)) return;
 
@@ -120,7 +128,7 @@ class WooviEvents extends Controller
     /**
      * Make url of Woovi plugin.
      */
-    private function getPluginUrl(string $correlationID)
+    private function getPluginUrl(string $correlationID): string
     {
         $appId = $this->config->get("payment_woovi_app_id");
 

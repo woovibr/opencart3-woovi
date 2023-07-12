@@ -93,9 +93,16 @@ class Logger
 
         // Find caller from backtrace.
         // It is taking into account this method and the appendMessage method.
-        $caller = array_slice(debug_backtrace(!DEBUG_BACKTRACE_PROVIDE_OBJECT|DEBUG_BACKTRACE_IGNORE_ARGS, 3), 2, 1)[0];
+        
+        // Not populate the "object" index and omit the "args" index,
+        // and thus all the function/method arguments, to save memory.
+        $options = false|DEBUG_BACKTRACE_IGNORE_ARGS;
+        
+        $caller = array_slice(debug_backtrace($options, 3), 2, 1)[0];
 
-        $footer .= "(". $caller["file"] . ":" . $caller["line"] . ")";
+        if (! empty($caller["file"]) && ! empty($caller["line"])) {
+            $footer .= "(". $caller["file"] . ":" . $caller["line"] . ")";
+        }
 
         return $footer . "\n";
     }

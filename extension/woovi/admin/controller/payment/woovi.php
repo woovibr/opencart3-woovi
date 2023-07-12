@@ -6,6 +6,20 @@ use Opencart\System\Engine\Controller;
 
 /**
  * Settings page for Woovi extension.
+ *
+ * @property \Opencart\System\Engine\Loader $load
+ * @property \Opencart\System\Library\Document $document
+ * @property \Opencart\System\Library\Session $session
+ * @property \Opencart\System\Library\Url $url
+ * @property \Opencart\System\Library\Request $request
+ * @property \Opencart\System\Library\Response $response
+ * @property \Opencart\System\Library\Language $language
+ * @property \Opencart\System\Engine\Config $config
+ * @property \Opencart\System\Library\Cart\User $user
+ * @property \Opencart\Admin\Model\Customer\CustomField $model_customer_custom_field
+ * @property \Opencart\Admin\Model\Localisation\OrderStatus $model_localisation_order_status
+ * @property \Opencart\Admin\Model\Setting\Setting $model_setting_setting
+ * @property \Opencart\Admin\Model\Extension\Woovi\Payment\Woovi $model_extension_woovi_payment_woovi
  */
 class Woovi extends Controller
 {
@@ -108,7 +122,7 @@ class Woovi extends Controller
     /**
      * Run installation.
      */
-    public function install()
+    public function install(): void
     {
         // TODO: Check if user can modify this extension.
 
@@ -119,7 +133,7 @@ class Woovi extends Controller
     /**
      * Run uninstallation.
      */
-    public function uninstall()
+    public function uninstall(): void
     {
         // TODO: Check if user can modify this extension.
 
@@ -135,11 +149,13 @@ class Woovi extends Controller
     private function emitJson($data): void
     {
         $this->response->addHeader("Content-Type: application/json");
-        $this->response->setOutput(json_encode($data));
+        $this->response->setOutput((string) json_encode($data));
     }
 
     /**
      * Make breadcrumbs for settings page.
+     *
+     * @return array<array{text: string, href: string}>
      */
     private function makeBreadcrumbs(string $marketplaceLink): array
     {
@@ -173,6 +189,8 @@ class Woovi extends Controller
 
     /**
      * Render components for settings page.
+     *
+     * @return array{header: string|mixed, column_left: string|mixed, footer: string|mixed}
      */
     private function makeSettingsPageComponents(): array
     {

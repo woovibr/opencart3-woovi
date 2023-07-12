@@ -9,11 +9,14 @@ use Opencart\System\Engine\Model;
  *
  * This adds the events and creates a table of relationships between orders and charges, for example.
  * 
+ * @property \Opencart\System\Library\DB $db
+ * @property \Opencart\System\Engine\Loader $load
  * @property \Opencart\Admin\Model\Customer\CustomField $model_customer_custom_field
  * @property \Opencart\Admin\Model\Setting\Setting $model_setting_setting
  * @property \Opencart\Admin\Model\Setting\Event $model_setting_event
+ * @property \Opencart\Admin\Model\Localisation\Language $model_localisation_language
  * @property \Opencart\Admin\Model\Setting\Extension $model_setting_extension
- * @property \Opencart\System\Library\DB $db
+ * @property \Opencart\System\Engine\Config $config
  */
 class Woovi extends Model
 {
@@ -69,7 +72,7 @@ class Woovi extends Model
         }
 
         // Use default customer group ID.
-        $customerGroupId = intval($this->config->get("config_customer_group_id"));
+        $customerGroupId = $this->config->get("config_customer_group_id");
 
         $taxIdCustomFieldId = $this->model_customer_custom_field->addCustomField([
             "custom_field_description" => $descriptions,
@@ -96,7 +99,7 @@ class Woovi extends Model
     /**
      * Install default settings like order statuses ID's.
      */
-    private function installSettings()
+    private function installSettings(): void
     {
         $this->load->model("setting/setting");
 
@@ -147,7 +150,7 @@ class Woovi extends Model
      *
      * The table is used to relate a OpenPix charge to an OpenCart order.
      */
-    private function createWooviOrderTable()
+    private function createWooviOrderTable(): void
     {
         $this->db->query(
             "CREATE TABLE IF NOT EXISTS `". DB_PREFIX ."woovi_order` (
@@ -166,7 +169,7 @@ class Woovi extends Model
     /**
      * Install the extension's event listeners in the OpenCart database.
      */
-    private function installEvents()
+    private function installEvents(): void
     {
         $this->load->model("setting/event");
 
@@ -205,7 +208,7 @@ class Woovi extends Model
     /**
      * Uninstall the extension's event listeners in the OpenCart database.
      */
-    private function uninstallEvents()
+    private function uninstallEvents(): void
     {
         $this->load->model("setting/event");
 
@@ -221,7 +224,9 @@ class Woovi extends Model
         $this->load->model("setting/extension");
 
         // Store latest upgraded version.
-        $manifest = json_decode(file_get_contents(__DIR__ . "/../../../install.json"), true);
+
+        /** @var array{name: string, version: string, code: string, link: string, author: string} $manifest */
+        $manifest = json_decode((string) file_get_contents(__DIR__ . "/../../../install.json"), true);
 
         $currentVersion = $manifest["version"];
 

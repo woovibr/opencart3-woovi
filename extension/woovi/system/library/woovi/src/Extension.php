@@ -20,13 +20,13 @@ class Extension
      */
     public function __construct(Registry $registry)
     {
-        $this->registry = $registry;       
+        $this->registry = $registry;
     }
 
     /**
      * Register services to OpenCart registry.
      */
-    public function registerDependencies()
+    public function registerDependencies(): void
     {
         $this->registry->set("woovi_extension", $this);
         $this->registerPhpSdkClient();       
@@ -58,11 +58,12 @@ class Extension
      */
     private function makeWooviApiClient(): Client
     {
-        return Client::create(
-            $this->registry->get("config")->get("payment_woovi_app_id"),
+        /** @var \Opencart\System\Engine\Config $config */
+        $config = $this->registry->get("config");
 
-            // Use Woovi API.
-            "https://api.woovi.com"
-        );
+        /** @var string $appId */
+        $appId = $config->get("payment_woovi_app_id");
+
+        return Client::create($appId, "https://api.woovi.com");
     }
 }

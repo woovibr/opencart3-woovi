@@ -3,3 +3,5 @@ build
 vendor-bin
 opencart
 opencart-storage
+phpstan.neon
+stubs

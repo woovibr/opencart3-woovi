@@ -2,16 +2,29 @@
 
 namespace Opencart\Catalog\Controller\Extension\Woovi\Payment;
 
-use Exception;
 use Opencart\System\Engine\Controller;
 use OpenPix\PhpSdk\ApiErrorException;
 use Psr\Http\Client\ClientExceptionInterface;
 
 /**
  * Add endpoints for pix payment method.
- * 
+ *
+ * @property \Opencart\System\Engine\Loader $load
+ * @property \Opencart\System\Library\Session $session
+ * @property \Opencart\System\Library\Url $url
+ * @property \Opencart\System\Library\Request $request
+ * @property \Opencart\System\Library\Response $response
+ * @property \Opencart\System\Library\Language $language
+ * @property \Opencart\System\Engine\Config $config
+ * @property \Opencart\System\Library\Cart\Customer $customer
+ * @property \Opencart\Catalog\Model\Checkout\Order $model_checkout_order
+ * @property \Opencart\Catalog\Model\Extension\Woovi\Payment\WooviOrder $model_extension_woovi_payment_woovi_order
  * @property \OpenPix\PhpSdk\Client $woovi_api_client
  * @property \Woovi\Opencart\Logger $woovi_logger
+ * 
+ * @phpstan-type CreateChargeResult array{correlationID: string, charge: Charge}
+ * @phpstan-type Charge array{paymentLinkUrl: string, qrCodeImage: string, brCode: string, pixKey: string, correlationID: string}
+ * @phpstan-type CustomerData array{name: string, email: string, taxID?: string, phone?: string}
  */
 class Woovi extends Controller
 {
@@ -61,7 +74,10 @@ class Woovi extends Controller
         // An error ocurred and it is logged.
         if (empty($createChargeResult)) return;
 
-        $this->relateOrderWithWooviCharge($this->session->data["order_id"], $createChargeResult);
+        if (! empty($this->session->data["order_id"])) {
+            $this->relateOrderWithWooviCharge($this->session->data["order_id"],     $createChargeResult);
+        }
+
         $this->persistCorrelationIDToCheckoutSuccess($correlationID);
 
         $this->emitJson([
@@ -89,14 +105,14 @@ class Woovi extends Controller
             return false;
         }
 
-        $taxID = $this->getTaxID() ?? "";
+        $taxID = $this->getTaxID();
 
         // Shows an error if it is invalid in both cases: CPF and CNPJ.
         if (! ($this->isCPFValid($taxID) ^ $this->isCNPJValid($taxID))) {
             $error = ! empty($this->getTaxIDFromSession())
                 ? ["warning" => $this->language->get("CPF/CNPJ invalid! Change the CPF/CNPJ field in your account settings page or on this page if you see the field.")]
                 : ["tax_id" => $this->language->get("CPF/CNPJ invalid!")];
-            
+
             $this->emitError($error);
 
             return false;
@@ -111,7 +127,7 @@ class Woovi extends Controller
     private function getTaxIDFromSession(): string
     {
         $taxIdCustomFieldId = $this->config->get("payment_woovi_tax_id_custom_field_id");
-        
+
         return $this->session->data["customer"]["custom_field"][$taxIdCustomFieldId] ?? "";
     }
 
@@ -132,12 +148,15 @@ class Woovi extends Controller
      *
      * This will subtract stock and change order status, for example.
      */
-    private function addOrderConfirmation()
+    private function addOrderConfirmation(): void
     {
+        /** @var string $orderStatusId  */
+        $orderStatusId = $this->config->get("payment_woovi_order_status_when_waiting_id");
+
         $this->load->model("checkout/order");
         $this->model_checkout_order->addHistory(
             $this->session->data["order_id"],
-            (int) $this->config->get("payment_woovi_order_status_when_waiting_id")
+            intval($orderStatusId)
         );
     }
 
@@ -153,15 +172,18 @@ class Woovi extends Controller
 
     /**
      * Create an charge and send to Woovi API.
+     * 
+     * @param CustomerData $customerData
+     * @return CreateChargeResult
      */
-    private function createWooviCharge(string $correlationID, int $orderValueInCents, ?array $customerData): ?array
+    private function createWooviCharge(string $correlationID, int $orderValueInCents, array $customerData): ?array
     {
         $this->load->helper("extension/woovi/library"); // Setup API client & logger.
 
         $chargeData = [
             "correlationID" => $correlationID,
             "value" => $orderValueInCents,
-            "customer" => $this->getCustomerData(),
+            "customer" => $customerData,
         ];
 
         try {
@@ -172,9 +194,12 @@ class Woovi extends Controller
         }
 
         // It could be an error in the App ID.
-        if (! empty($createChargeResult["errors"][0]["message"])) {
+        /** @var list<array{message: string}> $errors */
+        $errors = $createChargeResult["errors"] ?? [];
+
+        if (! empty($errors[0]["message"])) {
             $this->woovi_logger->error(
-                $createChargeResult["errors"][0]["message"],
+                $errors[0]["message"],
                 self::LOG_SCOPE
             );
         }
@@ -185,13 +210,16 @@ class Woovi extends Controller
             return null;
         }
 
+        /** @var CreateChargeResult $createChargeResult */
         return $createChargeResult;
     }
 
     /**
      * Relates the OpenCart order to the charge on Woovi.
+     * 
+     * @param CreateChargeResult $createChargeResult
      */
-    private function relateOrderWithWooviCharge(int $opencartOrderId, array $createChargeResult)
+    private function relateOrderWithWooviCharge(int $opencartOrderId, array $createChargeResult): void
     {
         $this->load->model("extension/woovi/payment/woovi_order");
         $this->model_extension_woovi_payment_woovi_order->relateOrderWithCharge(
@@ -212,8 +240,10 @@ class Woovi extends Controller
 
     /**
      * Gets the consumer data or returns null if not possible.
+     * 
+     * @return CustomerData
      */
-    private function getCustomerData(): ?array
+    private function getCustomerData(): array
     {
         $phone = $this->normalizePhone($this->customer->getTelephone());
         $taxID = $this->getTaxID();
@@ -254,7 +284,7 @@ class Woovi extends Controller
      *      ```
      *      It can be a string, where only an danger alert will appear at checkout.
      */
-    private function emitError($error)
+    private function emitError($error): void
     {
         if (is_string($error)) $error = ["warning" => $error];
 
@@ -269,7 +299,7 @@ class Woovi extends Controller
     private function emitJson($data): void
     {
         $this->response->addHeader("Content-Type: application/json");
-        $this->response->setOutput(json_encode($data));
+        $this->response->setOutput((string) json_encode($data));
     }
 
     /**
@@ -283,6 +313,7 @@ class Woovi extends Controller
         }
 
         // Remove non-numeric characters from the CPF.
+        /** @var string $cpf */
         $cpf = preg_replace('/[^0-9]/', '', $cpf);
 
         // CPF length must be 11.
@@ -298,7 +329,7 @@ class Woovi extends Controller
         // Calculates the check digits to verify that the CPF is valid.
         for ($i = 9; $i < 11; $i++) {
             for ($sum = 0, $j = 0; $j < $i; $j++) {
-                $sum += $cpf[$j] * ($i + 1 - $j);
+                $sum += intval($cpf[$j]) * ($i + 1 - $j);
             }
 
             $digit = ((10 * $sum) % 11) % 10;
@@ -322,6 +353,7 @@ class Woovi extends Controller
         }
 
         // Remove non-numeric characters.
+        /** @var string $cnpj */
         $cnpj = preg_replace('/[^0-9]/', '', $cnpj);
 
         // CNPJ length must be 14.
@@ -334,20 +366,25 @@ class Woovi extends Controller
             return false;
         }
 
+        /** @var array<int> $digits */
+        $digits = array_map('intval', str_split($cnpj));
+
         $multipliers = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
 
         // Calculate the first verification digit.
-        for ($i = 0, $sum = 0; $i < 12; $sum += $cnpj[$i] * $multipliers[++$i]);
+        for ($i = 0, $sum = 0; $i < 12; $sum += $digits[$i] * $multipliers[++$i]);
 
         // Check the first verification digit.
-        if ($cnpj[12] != (($sum %= 11) < 2 ? 0 : 11 - $sum)) {
+        $firstVerificationDigit = $digits[12];
+        if ($firstVerificationDigit != (($sum %= 11) < 2 ? 0 : 11 - $sum)) {
             return false;
         }
 
         // Calculate the second verification digit.
-        for ($i = 0, $sum = 0; $i <= 12; $sum += $cnpj[$i] * $multipliers[$i++]);
+        for ($i = 0, $sum = 0; $i <= 12; $sum += $digits[$i] * $multipliers[$i++]);
 
-        if ($cnpj[13] != (($sum %= 11) < 2 ? 0 : 11 - $sum)) {
+        $secondVerificationDigit = $digits[13];
+        if ($secondVerificationDigit != (($sum %= 11) < 2 ? 0 : 11 - $sum)) {
             return false;
         }
 

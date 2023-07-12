@@ -105,12 +105,21 @@ class Woovi extends Model
 
         $settings = $this->model_setting_setting->getSetting("payment_woovi");
 
-        // Use "pending" as default waiting status.
+        // Use OpenCart configured order status.
+        // Otherwise, use "pending" as default waiting status.
         // On OpenCart installer, the pending status ID is 1:
         // https://github.com/opencart/opencart/blob/e3ae482e66671167b44f86e798f07f8084561117/upload/install/opencart.sql#L1578
-        if (empty($settings["payment_woovi_order_status_when_waiting_id"])) {
-            $settings["payment_woovi_order_status_when_waiting_id"] = $this->findOrderStatusIdByName(["Pendente", "Pending"], 1);
+        $orderStatusWhenWaitingId = $settings["payment_woovi_order_status_when_waiting_id"] ?? "";
+        
+        if (empty($orderStatusWhenWaitingId)) {
+            $orderStatusWhenWaitingId = $this->model_setting_setting->getValue("config_order_status_id");
         }
+
+        if (empty($orderStatusWhenWaitingId)) {
+            $orderStatusWhenWaitingId = $this->findOrderStatusIdByName(["Pendente", "Pending"], 1);
+        }
+
+        $settings["payment_woovi_order_status_when_waiting_id"] = $orderStatusWhenWaitingId;
 
         // Use "processing" as default paid status.
         // On OpenCart installer, the processing status ID is 2:

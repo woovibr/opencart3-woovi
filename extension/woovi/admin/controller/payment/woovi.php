@@ -124,10 +124,10 @@ class Woovi extends Controller
      */
     public function install(): void
     {
-        // TODO: Check if user can modify this extension.
-
-        $this->load->model("extension/woovi/payment/woovi");
-        $this->model_extension_woovi_payment_woovi->install();
+        if ($this->user->hasPermission("modify", "extension/payment")) {
+            $this->load->model("extension/woovi/payment/woovi");
+            $this->model_extension_woovi_payment_woovi->install();
+        }
     }
 
     /**
@@ -135,10 +135,10 @@ class Woovi extends Controller
      */
     public function uninstall(): void
     {
-        // TODO: Check if user can modify this extension.
-
-        $this->load->model("extension/woovi/payment/woovi");
-        $this->model_extension_woovi_payment_woovi->uninstall();
+        if ($this->user->hasPermission("modify", "extension/payment")) {
+            $this->load->model("extension/woovi/payment/woovi");
+            $this->model_extension_woovi_payment_woovi->uninstall();
+        }
     }
 
     /**

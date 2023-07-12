@@ -76,6 +76,24 @@
                                     {% if payment_woovi_status %} checked{% endif %}
                                 />
                             </div>
+
+                            <p>
+                                {{ lang["Use this Webhook URL to be registered at Woovi:"] }}
+                                <a href="{{ woovi_webhook_callback_url }}">
+                                    {{ woovi_webhook_callback_url }}
+                                </a>
+                            </p>
+
+                            <p>
+                                {{ lang["Open your account now"] }}
+                                <a href="{{ woovi_register_account_url }}">
+                                    {{ woovi_register_account_url }}
+                                </a>
+                            </p>
+                            
+                            <p>
+                                {{ lang["Woovi integration <a href=\"%woovi_opencart_documentation_url%\" target=\"_blank\">documentation</a> with OpenCart"]|replace({'%woovi_opencart_documentation_url%': woovi_opencart_documentation_url}) }}
+                            </p> 
                         </div>
                     </div>
 

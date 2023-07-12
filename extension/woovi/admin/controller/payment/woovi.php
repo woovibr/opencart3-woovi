@@ -52,8 +52,19 @@ class Woovi extends Controller
             "filter_status" => true
         ]);
 
+        $wooviWebhookCallbackUrl = str_replace(
+            HTTP_SERVER,
+            HTTP_CATALOG,
+            $this->url->link("extension/woovi/payment/woovi_webhooks|callback")
+        );
+
         $this->response->setOutput($this->load->view("extension/woovi/payment/woovi", [
             "breadcrumbs" => $this->makeBreadcrumbs($marketplaceLink),
+
+            // Urls
+            "woovi_register_account_url" => "https://app.woovi.com/register",
+            "woovi_webhook_callback_url" => $wooviWebhookCallbackUrl,
+            "woovi_opencart_documentation_url" => "https://developers.woovi.com/docs/ecommerce/opencart/opencart-plugin#instale-o-plugin-woovi-na-sua-inst%C3%A2ncia-opencart-utilizando-one-click",
 
             // Routes
             "save_route" => $this->url->link("extension/woovi/payment/woovi|save", $tokenQuery),

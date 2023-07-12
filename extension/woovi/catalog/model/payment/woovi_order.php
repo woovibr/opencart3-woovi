@@ -13,7 +13,7 @@ use Opencart\System\Engine\Model;
  * @property \Opencart\System\Engine\Loader $load
  * 
  * @phpstan-import-type Charge from \Opencart\Catalog\Controller\Extension\Woovi\Payment\Woovi
- * @phpstan-type OpencartOrder array{order_id: string}
+ * @phpstan-type OpencartOrder array{order_id: string, order_status_id: string}
  * @phpstan-type WooviOrderData array{opencart_order_id: int, woovi_correlation_id: string, woovi_payment_link_url: string, woovi_qrcode_image_url: string, woovi_brcode: string, woovi_pixkey: string}
  */
 class WooviOrder extends Model

@@ -74,7 +74,7 @@ class WooviWebhooks extends Controller
     private function handleChargeCompletedWebhook(array $payload): void
     {
         $correlationID = $payload["charge"]["correlationID"];
-      
+
         $order = $this->model_extension_woovi_payment_woovi_order->getOpencartOrderByCorrelationID($correlationID);
 
         if (empty($order)) {
@@ -84,8 +84,19 @@ class WooviWebhooks extends Controller
             return;
         }
 
+        $orderStatusId = $order["order_status_id"];
+
         /** @var string $newStatusId */
         $newStatusId = $this->config->get("payment_woovi_order_status_when_paid_id");
+
+        // Ignore webhook event if order is already on paid status.
+        if ($newStatusId == $orderStatusId) {
+            $this->emitJson(["message" => "Success."]);
+            $this->woovi_logger->debug("Order already paid: " . $order["order_id"], "catalog/webhooks");
+
+            return;
+        }
+        
         $comment = $this->language->get("The payment was confirmed by Woovi.");
         $notifyCustomer = !! $this->config->get("payment_woovi_notify_customer");
 

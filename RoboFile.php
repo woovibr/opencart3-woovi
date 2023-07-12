@@ -2,6 +2,7 @@
 
 use Robo\Tasks;
 use Dotenv\Dotenv;
+use Robo\Symfony\ConsoleIO;
 use StubsGenerator\{StubsGenerator, Finder};
 
 /**
@@ -109,16 +110,53 @@ class RoboFile extends Tasks
     }
 
     /**
-     * Build an release file for extension.
+     * Build an release artifact for extension.
      */
-    public function extensionBuild()
+    public function extensionBuild(ConsoleIO $consoleIO)
     {
-        // TODO
+        $collection = $this->collectionBuilder();
+
+        $createGitArchiveTemporaryFile = $this->taskTmpFile("opencart-woovi-git-archive", ".zip");
+        $gitArchivePath = $createGitArchiveTemporaryFile->getPath();
+
+        $gitArchive = $this->taskGitStack()
+            ->exec("archive -o " . $gitArchivePath . " HEAD");
+
+        $changeToWorkFolder = $this->taskTmpDir("opencart-woovi")
+            ->cwd(true);
+
+        $extractGitArchive = $this->taskExtract($gitArchivePath)
+            ->to($changeToWorkFolder->getPath());
+
+        $composerInstall = $this->taskComposerInstall()
+            ->optimizeAutoloader()
+            ->noDev()
+            ->noAnsi()
+            ->noInteraction()
+            ->noSuggest();
+
+        $createBuildFolder = $this->taskFilesystemStack()
+            ->mkdir(__DIR__ . "/build");
+
+        $createPackedFile = $this->taskPack(__DIR__ . "/build/woovi.ocmod.zip")
+            ->addDir(".", "extension/woovi");
+
+        $collection->addTaskList([
+            $createGitArchiveTemporaryFile,
+            $gitArchive,
+            $extractGitArchive,
+            $changeToWorkFolder,
+            $composerInstall,
+            $createBuildFolder,
+            $createPackedFile,
+        ])->run();
+
+        $consoleIO->success("Success! Build file is at build/woovi.ocmod.zip");
     }
 
     /**
      * Generate OpenCart stubs.
-     * 
+     *
      * This is needed for linting and intellisense.
      */
     public function stubsGenerate(): void
@@ -148,7 +186,7 @@ class RoboFile extends Tasks
         if (! file_exists(__DIR__ . "/stubs/opencart.php")) {
             $this->stubsGenerate();
         }
-        
+
         $this->_exec("phpstan analyse");
     }
 

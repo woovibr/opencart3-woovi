@@ -1,4 +1,4 @@
-/tests export-ignore
+tests export-ignore
 .gitignore export-ignore
 .editorconfig export-ignore
 README.md export-ignore
@@ -10,7 +10,9 @@ phpunit.xml.dist export-ignore
 RoboFile.php export-ignore
 CONTRIBUTING.md export-ignore
 docker-compose.dev.yml export-ignore
-/docker export-ignore
+docker export-ignore
 dev export-ignore
+phpstan.dist.neon export-ignore
+LICENSE export-ignore
 
 *.php diff=php

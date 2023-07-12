@@ -27,7 +27,8 @@
             "Composer\\Config::disableProcessTimeout",
             "vendor-bin/robo"
         ],
-        "lint": "robo extension:lint"
+        "lint": "robo extension:lint",
+        "build": "robo extension:build"
     },
     "config": {
         "bin-dir": "vendor-bin",

@@ -172,7 +172,7 @@ class WooviWebhooks extends Controller
 
         $signature = $headers["x-webhook-signature"] ?? "";
         $signature = is_string($signature) ? $signature : "";
-       
+
         if (! $this->isValidSignature($rawPayload, $signature)) {
             $serializedRequest = json_encode($this->request, JSON_PRETTY_PRINT);
 
@@ -236,8 +236,8 @@ class WooviWebhooks extends Controller
      */
     private function isValidTestWebhookPayload(array $payload): bool
     {
-        return ! empty($payload["event"])
-            && $payload["event"] === self::TEST_WEBHOOK_EVENT;
+        return ! empty($payload["evento"])
+            && $payload["evento"] === self::TEST_WEBHOOK_EVENT;
     }
 
     /**

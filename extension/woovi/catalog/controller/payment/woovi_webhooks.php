@@ -167,8 +167,10 @@ class WooviWebhooks extends Controller
     {        
         $rawPayload = strval(file_get_contents("php://input"));
         
-        /** @var array<array-key, mixed> $headers */
-        $headers = getallheaders();
+        /** @var array<array-key, mixed> $rawHeaders */
+        $rawHeaders = getallheaders();
+
+        $headers = array_change_key_case($rawHeaders, CASE_LOWER);
 
         $signature = $headers["x-webhook-signature"] ?? "";
         $signature = is_string($signature) ? $signature : "";

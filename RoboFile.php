@@ -148,25 +148,22 @@ class RoboFile extends Tasks
     {
         $collection = $this->collectionBuilder();
 
+        // Create an archive file using Git that with .gitattributes.
         $createGitArchiveTemporaryFile = $this->taskTmpFile("opencart-woovi-git-archive", ".zip");
         $gitArchivePath = $createGitArchiveTemporaryFile->getPath();
 
         $gitArchive = $this->taskGitStack()
             ->exec("archive -o " . $gitArchivePath . " HEAD");
 
+        // Create an temporary directory that contains `extracted archive.
+        // We use this for adding optimized Composer `vendor` directory.
         $changeToWorkFolder = $this->taskTmpDir("opencart-woovi")
             ->cwd(true);
 
         $extractGitArchive = $this->taskExtract($gitArchivePath)
             ->to($changeToWorkFolder->getPath());
 
-        $collection->addTaskList([
-            $createGitArchiveTemporaryFile,
-            $gitArchive,
-            $extractGitArchive,
-            $changeToWorkFolder,
-        ]);
-
+        // Install Composer production dependencies.
         $composerInstall = $this->taskComposerInstall()
             ->optimizeAutoloader()
             ->noDev()
@@ -174,29 +171,67 @@ class RoboFile extends Tasks
             ->noInteraction()
             ->noScripts();
 
+        // Enable production environment using this Robo instance.
         $enableEnvironment = fn () => $this->extensionEnableEnvironment(
             $consoleIO,
             "production",
             ["force" => true]
         );
 
-        $collection->addTask($composerInstall);
+        // Add tasks to collection.
+        $collection->addTaskList([
+            $createGitArchiveTemporaryFile,
+            $gitArchive,
+            $extractGitArchive,
+            $changeToWorkFolder,
+            $composerInstall,
+        ]);
+
         $collection->addCode($enableEnvironment);
 
-        $collection->run();
-
-        $buildFolderPath = __DIR__ . "/build";
-        $artifactPath = __DIR__ . "/build/woovi.ocmod.zip";
+        // Prepare build directory.
+        $buildDirectoryPath = __DIR__ . "/build";
 
         $prepareBuildDirectory = $this->taskFilesystemStack()
-            ->mkdir($buildFolderPath);
+            ->mkdir($buildDirectoryPath);
+
+        $artifactPath = $this->getArtifactPath($buildDirectoryPath);
 
         if (file_exists($artifactPath)) {
             $prepareBuildDirectory->remove($artifactPath);
         }
 
+        $collection->addTask($prepareBuildDirectory);
+
+        // Pack files into an artifact file.
+        $createArtifact = $this->taskPack($artifactPath);
+
+        // Pack files in temporary work dir.
+        $collection->addCode(function ()
+            use ($createArtifact, $changeToWorkFolder) {
+            $paths = $this->findArtifactIncludedFilePaths(
+                $changeToWorkFolder->getPath()
+            );
+
+            $createArtifact->add($paths);
+        });
+
+        $collection->addTask($createArtifact);
+
+        $collection->run();
+
+        $consoleIO->success("Success! Build file is at " . $artifactPath);
+    }
+
+    /**
+     * Find paths of files that will be included in artifact.
+     * 
+     * @return array<string, string>
+     */
+    private function findArtifactIncludedFilePaths(string $temporaryWorkDir): array
+    {
         $finder = (new Finder)->files()
-            ->in("extension/woovi")
+            ->in($temporaryWorkDir . "/extension/woovi")
             ->ignoreDotFiles(false);
 
         $paths = array_flip(array_map(
@@ -204,15 +239,24 @@ class RoboFile extends Tasks
             iterator_to_array($finder)
         ));
 
-        $createArtifact = $this->taskPack($artifactPath)
-            ->add($paths);
+        return $paths;
+    }
 
-        $collection->addTaskList([
-            $prepareBuildDirectory,
-            $createArtifact,
-        ])->run();
-
-        $consoleIO->success("Success! Build file is at build/woovi.ocmod.zip");
+    /**
+     * Returns artifact path.
+     */
+    private function getArtifactPath(string $buildDirectoryPath): string
+    {
+        $version = str_replace(
+            ".",
+            "_",
+            json_decode(
+                file_get_contents(__DIR__ . "/extension/woovi/install.json"),
+                true
+            )["version"]
+        );
+        $buildTime = date("Y_m_d__H_i_s");
+        return $buildDirectoryPath . "/woovi__{$version}__{$buildTime}.ocmod.zip";
     }
 
     /**

@@ -128,7 +128,7 @@ class Woovi extends Controller
     {
         $taxIdCustomFieldId = $this->config->get("payment_woovi_tax_id_custom_field_id");
 
-        return $this->session->data["customer"]["custom_field"]["account"][$taxIdCustomFieldId] ?? "";
+        return $this->session->data["customer"]["custom_field"][$taxIdCustomFieldId] ?? "";
     }
 
     /**

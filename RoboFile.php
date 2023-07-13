@@ -3,7 +3,9 @@
 use Robo\Tasks;
 use Dotenv\Dotenv;
 use Robo\Symfony\ConsoleIO;
-use StubsGenerator\{StubsGenerator, Finder};
+use StubsGenerator\{StubsGenerator, StubsFinder};
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 
 /**
  * This is project's console commands configuration for Robo task runner.
@@ -111,15 +113,15 @@ class RoboFile extends Tasks
 
     /**
      * Enable an environment for extension.
-     * 
+     *
      * @param "production"|"development"|"staging" $environment Type of environment. Allowed: production, development or staging.
      * @phpstan-param array<array-key, mixed> $opts
-     * 
+     *
      * @option $force Enable even if already enabled.
      */
     public function extensionEnableEnvironment(ConsoleIO $consoleIO, string $environment, array $opts = ["force|f" => false])
     {
-        $configPath = __DIR__ . "/extension/woovi/system/config/woovi.";
+        $configPath = getcwd() . "/extension/woovi/system/config/woovi.";
         $envTemplatePath = $configPath . $environment . ".php";
         $envPath = $configPath . "php";
 
@@ -158,27 +160,56 @@ class RoboFile extends Tasks
         $extractGitArchive = $this->taskExtract($gitArchivePath)
             ->to($changeToWorkFolder->getPath());
 
-        $composerInstall = $this->taskComposerInstall()
-            ->optimizeAutoloader()
-            ->noDev()
-            ->noAnsi()
-            ->noInteraction()
-            ->noSuggest();
-
-        $createBuildFolder = $this->taskFilesystemStack()
-            ->mkdir(__DIR__ . "/build");
-
-        $createPackedFile = $this->taskPack(__DIR__ . "/build/woovi.ocmod.zip")
-            ->addDir(".", "extension/woovi");
-
         $collection->addTaskList([
             $createGitArchiveTemporaryFile,
             $gitArchive,
             $extractGitArchive,
             $changeToWorkFolder,
-            $composerInstall,
-            $createBuildFolder,
-            $createPackedFile,
+        ]);
+
+        $composerInstall = $this->taskComposerInstall()
+            ->optimizeAutoloader()
+            ->noDev()
+            ->noAnsi()
+            ->noInteraction()
+            ->noScripts();
+
+        $enableEnvironment = fn () => $this->extensionEnableEnvironment(
+            $consoleIO,
+            "production",
+            ["force" => true]
+        );
+
+        $collection->addTask($composerInstall);
+        $collection->addCode($enableEnvironment);
+
+        $collection->run();
+
+        $buildFolderPath = __DIR__ . "/build";
+        $artifactPath = __DIR__ . "/build/woovi.ocmod.zip";
+
+        $prepareBuildDirectory = $this->taskFilesystemStack()
+            ->mkdir($buildFolderPath);
+
+        if (file_exists($artifactPath)) {
+            $prepareBuildDirectory->remove($artifactPath);
+        }
+
+        $finder = (new Finder)->files()
+            ->in("extension/woovi")
+            ->ignoreDotFiles(false);
+
+        $paths = array_flip(array_map(
+            fn (SplFileInfo $file) => $file->getRelativePathname(),
+            iterator_to_array($finder)
+        ));
+
+        $createArtifact = $this->taskPack($artifactPath)
+            ->add($paths);
+
+        $collection->addTaskList([
+            $prepareBuildDirectory,
+            $createArtifact,
         ])->run();
 
         $consoleIO->success("Success! Build file is at build/woovi.ocmod.zip");
@@ -197,7 +228,7 @@ class RoboFile extends Tasks
 
         $generator = new StubsGenerator();
 
-        $finder = Finder::create()->in($opencartPath);
+        $finder = StubsFinder::create()->in($opencartPath);
 
         $result = $generator->generate($finder)->prettyPrint();
 

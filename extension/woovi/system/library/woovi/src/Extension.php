@@ -3,10 +3,14 @@
 namespace Woovi\Opencart;
 
 use Opencart\System\Engine\Registry;
+use Opencart\System\Engine\Loader;
+use Opencart\System\Engine\Config;
 use OpenPix\PhpSdk\Client;
 
 /**
  * Service provider for Woovi Opencart library.
+ * 
+ * @phpstan-type WooviEnvironment array{env?: "production"|"development"|"staging", apiUrl?: string, pluginUrl?: string}
  */
 class Extension
 {
@@ -24,6 +28,14 @@ class Extension
     }
 
     /**
+     * Load extension.
+     */
+    public function load(): void
+    {
+        $this->getLoader()->config("extension/woovi/woovi");
+    }
+
+    /**
      * Register services to OpenCart registry.
      */
     public function registerDependencies(): void
@@ -31,6 +43,20 @@ class Extension
         $this->registry->set("woovi_extension", $this);
         $this->registerPhpSdkClient();       
         $this->registerLogger();
+    }
+
+    /**
+     * Get environment data.
+     * 
+     * @return WooviEnvironment
+     */
+    public function getEnvironment(): array
+    {
+        $env = $this->getConfig()->get("woovi_env");
+
+        if (! is_array($env)) return [];
+
+        return $env;
     }
 
     /**
@@ -58,12 +84,33 @@ class Extension
      */
     private function makeWooviApiClient(): Client
     {
-        /** @var \Opencart\System\Engine\Config $config */
+        /** @var string $appId */
+        $appId = $this->getConfig()->get("payment_woovi_app_id");
+
+        $apiUrl = $this->getEnvironment()["apiUrl"] ?? "https://api.woovi.com";
+
+        return Client::create($appId, $apiUrl);
+    }
+
+    /**
+     * Get loader from registry.
+     */
+    private function getLoader(): Loader
+    {
+        /** @var Loader $loader */
+        $loader = $this->registry->get("load");
+
+        return $loader;
+    }
+
+    /**
+     * Get config from registry.
+     */
+    private function getConfig(): Config
+    {
+        /** @var Config $config */
         $config = $this->registry->get("config");
 
-        /** @var string $appId */
-        $appId = $config->get("payment_woovi_app_id");
-
-        return Client::create($appId, "https://api.woovi.com");
+        return $config;
     }
 }

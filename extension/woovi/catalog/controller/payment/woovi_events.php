@@ -12,9 +12,20 @@ use Opencart\System\Engine\Controller;
  * @property \Opencart\System\Library\Session $session
  * @property \Opencart\System\Engine\Config $config
  * @property \Opencart\Catalog\Model\Extension\Woovi\Payment\WooviOrder $model_extension_woovi_payment_woovi_order
+ * 
+ * @phpstan-import-type WooviEnvironment from \Woovi\Opencart\Extension
  */
 class WooviEvents extends Controller
 {
+    /**
+     * Load necessary dependencies.
+     */
+    private function load(): void
+    {
+        $this->load->model("extension/woovi/payment/woovi_order");
+        $this->load->config("extension/woovi/woovi");
+    }
+
     /**
      * Handle "catalog/view/common/success/before" event.
      *
@@ -30,6 +41,8 @@ class WooviEvents extends Controller
 
         // Ignore non-Pix payments.
         if (empty($this->session->data["woovi_correlation_id"])) return;
+
+        $this->load();
 
         $correlationID = $this->session->data["woovi_correlation_id"];
 
@@ -60,9 +73,9 @@ class WooviEvents extends Controller
         if (! array_key_exists("woovi_correlation_id", $this->session->data)
             || ! $lastOrderId) return;
 
-        // Ensures that the current correlationID matches the latest order in the session.
-        $this->load->model("extension/woovi/payment/woovi_order");
+        $this->load();
 
+        // Ensures that the current correlationID matches the latest order in the session.
         $wooviOrder = $this->model_extension_woovi_payment_woovi_order->getWooviOrderByCorrelationID($this->session->data["woovi_correlation_id"]);
 
         // Ignore if correlationID is not registered.
@@ -94,9 +107,9 @@ class WooviEvents extends Controller
         // Ignore non-Pix payments.
         if ($data["payment_method"] != "Pix") return;
 
-        // Fetch correlationID using the opencart order id.
-        $this->load->model("extension/woovi/payment/woovi_order");
+        $this->load();
 
+        // Fetch correlationID using the opencart order id.
         $wooviOrder = $this->model_extension_woovi_payment_woovi_order->getWooviOrderByOpencartOrderId(intval($data["order_id"]));
 
         if (empty($wooviOrder)) return;
@@ -132,6 +145,11 @@ class WooviEvents extends Controller
     {
         $appId = $this->config->get("payment_woovi_app_id");
 
-        return "https://plugin.woovi.com/v1/woovi.js?appID=" . $appId . "&correlationID=" . $correlationID . "&node=woovi-order";
+        /** @var WooviEnvironment $wooviEnv */
+        $wooviEnv = $this->config->get("woovi_env");
+
+        $pluginUrl = $wooviEnv["pluginUrl"] ?? "https://plugin.woovi.com/v1/woovi.js";
+
+        return $pluginUrl . "?appID=" . $appId . "&correlationID=" . $correlationID . "&node=woovi-order";
     }
 }

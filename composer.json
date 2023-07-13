@@ -28,7 +28,8 @@
             "vendor-bin/robo"
         ],
         "lint": "robo extension:lint",
-        "build": "robo extension:build"
+        "build": "robo extension:build",
+        "post-install-cmd": "@robo extension:enable-environment production"
     },
     "config": {
         "bin-dir": "vendor-bin",

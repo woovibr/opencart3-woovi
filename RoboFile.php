@@ -110,6 +110,36 @@ class RoboFile extends Tasks
     }
 
     /**
+     * Enable an environment for extension.
+     * 
+     * @param "production"|"development"|"staging" $environment Type of environment. Allowed: production, development or staging.
+     * @phpstan-param array<array-key, mixed> $opts
+     * 
+     * @option $force Enable even if already enabled.
+     */
+    public function extensionEnableEnvironment(ConsoleIO $consoleIO, string $environment, array $opts = ["force|f" => false])
+    {
+        $configPath = __DIR__ . "/extension/woovi/system/config/woovi.";
+        $envTemplatePath = $configPath . $environment . ".php";
+        $envPath = $configPath . "php";
+
+        if (! file_exists($envTemplatePath)) {
+            $consoleIO->error("Environment template path `" . $envTemplatePath . "` does not exist!");
+            return;
+        }
+
+        $envAlreadyExists = file_exists($envPath);
+
+        $this->taskFilesystemStack()
+            ->copy($envTemplatePath, $envPath, $opts["force"])
+            ->run();
+
+        if (! $envAlreadyExists || ($envAlreadyExists && $opts["force"])) {
+            $consoleIO->success("`" . $environment . "` environment enabled!");
+        }
+    }
+
+    /**
      * Build an release artifact for extension.
      */
     public function extensionBuild(ConsoleIO $consoleIO)

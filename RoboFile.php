@@ -195,7 +195,7 @@ class RoboFile extends Tasks
         $prepareBuildDirectory = $this->taskFilesystemStack()
             ->mkdir($buildDirectoryPath);
 
-        $artifactPath = $this->getArtifactPath($buildDirectoryPath);
+        $artifactPath = $buildDirectoryPath . "/woovi.ocmod.zip";
 
         if (file_exists($artifactPath)) {
             $prepareBuildDirectory->remove($artifactPath);
@@ -240,23 +240,6 @@ class RoboFile extends Tasks
         ));
 
         return $paths;
-    }
-
-    /**
-     * Returns artifact path.
-     */
-    private function getArtifactPath(string $buildDirectoryPath): string
-    {
-        $version = str_replace(
-            ".",
-            "_",
-            json_decode(
-                file_get_contents(__DIR__ . "/extension/woovi/install.json"),
-                true
-            )["version"]
-        );
-        $buildTime = date("Y_m_d__H_i_s");
-        return $buildDirectoryPath . "/woovi__{$version}__{$buildTime}.ocmod.zip";
     }
 
     /**

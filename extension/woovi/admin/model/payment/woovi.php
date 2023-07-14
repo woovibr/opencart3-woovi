@@ -50,10 +50,11 @@ class Woovi extends Model
      */
     private function installCustomFields(): void
     {
+        $fingerprintSettings = $this->model_setting_setting->getSetting("thirdparty_payment_woovi");
         $settings = $this->model_setting_setting->getSetting("payment_woovi");
 
         // Does not create if the extension has already been installed.
-        if (array_key_exists("payment_woovi_tax_id_custom_field_id", $settings)) return;
+        if (! empty($fingerprintSettings)) return;
 
         $this->load->model("customer/custom_field");
         $this->load->model("localisation/language");
@@ -233,7 +234,6 @@ class Woovi extends Model
         $this->load->model("setting/extension");
 
         // Store latest upgraded version.
-
         /** @var array{name: string, version: string, code: string, link: string, author: string} $manifest */
         $manifest = json_decode((string) file_get_contents(__DIR__ . "/../../../install.json"), true);
 

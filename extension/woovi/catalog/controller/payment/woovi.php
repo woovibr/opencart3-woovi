@@ -38,18 +38,18 @@ class Woovi extends Controller
      *
      * This method will return an order confirmation button.
      */
-	public function index(): string
+    public function index(): string
     {
-		$this->load->language("extension/woovi/payment/woovi");
+        $this->load->language("extension/woovi/payment/woovi");
 
         $showTaxIdInput = empty($this->getTaxIDFromSession());
 
-		return $this->load->view("extension/woovi/payment/woovi", [
+        return $this->load->view("extension/woovi/payment/woovi", [
             "language" => $this->config->get("config_language"),
             "lang" => $this->language->all(),
             "show_tax_id_input" => $showTaxIdInput,
         ]);
-	}
+    }
 
     /**
      * Confirms the user's order.
@@ -59,9 +59,12 @@ class Woovi extends Controller
      */
     public function confirm(): void
     {
+        $this->load->model("extension/woovi/payment/woovi_order");
         $this->load->language("extension/woovi/payment/woovi");
 
         if (! $this->isConfirmationRequestValid()) return;
+
+        $orderId = $this->session->data["order_id"];
 
         $this->addOrderConfirmation();
 
@@ -74,8 +77,8 @@ class Woovi extends Controller
         // An error ocurred and it is logged.
         if (empty($createChargeResult)) return;
 
-        if (! empty($this->session->data["order_id"])) {
-            $this->relateOrderWithWooviCharge($this->session->data["order_id"],     $createChargeResult);
+        if (! empty($orderId)) {
+            $this->relateOrderWithWooviCharge($orderId, $createChargeResult);
         }
 
         $this->persistCorrelationIDToCheckoutSuccess($correlationID);
@@ -94,14 +97,16 @@ class Woovi extends Controller
      */
     private function isConfirmationRequestValid(): bool
     {
-        if (! isset($this->session->data["order_id"])) {
+        if (empty($this->session->data["order_id"])) {
             $this->emitError($this->language->get("No order ID in the session!"));
+
             return false;
         }
 
-        if (! isset($this->session->data["payment_method"])
+        if (empty($this->session->data["payment_method"])
             || $this->session->data["payment_method"] != "woovi") {
             $this->emitError($this->language->get("Payment method is incorrect!"));
+
             return false;
         }
 
@@ -112,8 +117,18 @@ class Woovi extends Controller
             $error = ! empty($this->getTaxIDFromSession())
                 ? ["warning" => $this->language->get("CPF/CNPJ invalid! Change the CPF/CNPJ field in your account settings page or on this page if you see the field.")]
                 : ["tax_id" => $this->language->get("CPF/CNPJ invalid!")];
-
             $this->emitError($error);
+
+            return false;
+        }
+
+        // Check if an order has already been registered with a pix charge.
+        $orderId = intval($this->session->data["order_id"]);
+
+        $wooviOrder = $this->model_extension_woovi_payment_woovi_order->getWooviOrderByOpencartOrderId($orderId);
+
+        if (! empty($wooviOrder)) {
+            $this->emitError(["warning" => $this->language->get("There is already a charge for this order!")]);
 
             return false;
         }
@@ -174,8 +189,6 @@ class Woovi extends Controller
      */
     private function getOrderValueInCents(): int
     {
-        $this->load->model("extension/woovi/payment/woovi_order");
-
         return $this->model_extension_woovi_payment_woovi_order->getTotalValueInCents($this->session->data["order_id"]);
     }
 
@@ -230,7 +243,6 @@ class Woovi extends Controller
      */
     private function relateOrderWithWooviCharge(int $opencartOrderId, array $createChargeResult): void
     {
-        $this->load->model("extension/woovi/payment/woovi_order");
         $this->model_extension_woovi_payment_woovi_order->relateOrderWithCharge(
             $opencartOrderId,
             $createChargeResult["correlationID"],

@@ -127,8 +127,17 @@ class Woovi extends Controller
     private function getTaxIDFromSession(): string
     {
         $taxIdCustomFieldId = $this->config->get("payment_woovi_tax_id_custom_field_id");
+        $customFields = $this->session->data["customer"]["custom_field"];
 
-        return $this->session->data["customer"]["custom_field"][$taxIdCustomFieldId] ?? "";
+        if (! empty($customFields["account"][$taxIdCustomFieldId])) {
+            return $customFields["account"][$taxIdCustomFieldId];
+        }
+
+        if (! empty($customFields[$taxIdCustomFieldId])) {
+            return $customFields[$taxIdCustomFieldId];
+        }
+
+        return "";
     }
 
     /**

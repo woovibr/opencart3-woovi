@@ -1,7 +1,7 @@
 {
     "name": "Woovi integration with OpenCart",
     "code": "woovi",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "link": "https://woovi.com/",
     "author": "Woovi"
 }

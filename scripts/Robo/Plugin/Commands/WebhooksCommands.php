@@ -7,6 +7,7 @@ use Scripts\Robo\BaseTasks;
 use Opencart\Catalog\Controller\Extension\Woovi\Payment\WooviWebhooks;
 use Scripts\OpencartRunner;
 use MockPhpStream;
+use Opencart\System\Library\Response;
 use OpenPix\PhpSdk\Client;
 
 /**
@@ -15,37 +16,73 @@ use OpenPix\PhpSdk\Client;
 class WebhooksCommands extends BaseTasks
 {
     /**
-     * Emit an "completed charge" webhook event.
+     * The opencart runner used by commands.
+     */
+    private ?OpencartRunner $opencartRunner = null;
+
+    /**
+     * Test "completed charge" webhook event.
      */
     public function webhooksCompleteCharge(int $orderId): void
     {
-        $opencartRunner = (new OpencartRunner(
-            getenv("OPENCART_PATH"),
-            getenv("APP_PORT")
-        ))->boot();
-        
-        $this->mockSignatureValidation($opencartRunner);
+        $this->makeOpencartRunner();
 
-        $opencartRunner->load->model("extension/woovi/payment/woovi_order");
+        $this->opencartRunner->load->model("extension/woovi/payment/woovi_order");
+        $wooviOrder = $this->opencartRunner->model_extension_woovi_payment_woovi_order->getWooviOrderByOpencartOrderId($orderId);
 
-        $wooviOrder = $opencartRunner->model_extension_woovi_payment_woovi_order->getWooviOrderByOpencartOrderId($orderId);
-
-        $payload = [
+        $this->emitWebhookEvent([
             "event" => WooviWebhooks::OPENPIX_CHARGE_COMPLETED_EVENT,
             "charge" => [
                 "correlationID" => $wooviOrder["woovi_correlation_id"],
             ],
-        ];
+        ]);
+    }
+
+    /*
+     * Test an "opencart-configure" webhook event.
+     */
+    public function webhooksOpencartConfigure(string $appID): void
+    {
+        $this->makeOpencartRunner();
+
+        $this->emitWebhookEvent([
+            "event" => WooviWebhooks::OPENCART_CONFIGURE_EVENT,
+            "appID" => $appID,
+        ]);
+    }
+
+    /**
+     * Emit an webhook with given payload.
+     */
+    private function emitWebhookEvent(array $payload): void
+    {
+        $runner = $this->makeOpencartRunner();
+
+        $this->mockSignatureValidation($runner);
 
         MockPhpStream::register();
         file_put_contents("php://input", json_encode($payload));
 
-        $response = $opencartRunner->sendRequest("POST", "extension/woovi/payment/woovi_webhooks|callback");
-
-        echo "Response from webhook handler: \n";
-        var_dump($response->getOutput());
+        $response = $runner->sendRequest("POST", "extension/woovi/payment/woovi_webhooks|callback");
 
         MockPhpStream::restore();
+
+        echo "Response from webhook handler:\n";        
+
+        var_dump($response->getOutput());
+    }
+
+    /**
+     * Get an OpenCart runner.
+     */
+    private function makeOpencartRunner(): OpencartRunner
+    {
+        if (! is_null($this->opencartRunner)) return $this->opencartRunner;
+
+        return $this->opencartRunner = (new OpencartRunner(
+            getenv("OPENCART_PATH"),
+            getenv("APP_PORT")
+        ))->boot();
     }
 
     /**

@@ -3,7 +3,7 @@
 namespace Scripts\Robo\Plugin\Commands;
 
 use Scripts\Robo\BaseTasks;
-use StubsGenerator\{StubsGenerator, StubsFinder};
+use StubsGenerator\{StubsGenerator, Finder};
 
 /**
  * Commands for managing stubs.
@@ -23,7 +23,7 @@ class StubsCommands extends BaseTasks
 
         $generator = new StubsGenerator();
 
-        $finder = StubsFinder::create()->in($opencartPath);
+        $finder = Finder::create()->in($opencartPath);
 
         $result = $generator->generate($finder)->prettyPrint();
 

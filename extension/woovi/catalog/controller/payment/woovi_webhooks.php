@@ -27,17 +27,17 @@ class WooviWebhooks extends Controller
     /**
      * Called when testing webhooks.
      */
-    private const TEST_WEBHOOK_EVENT = "teste_webhook";
+    const TEST_WEBHOOK_EVENT = "teste_webhook";
         
     /**
      * Called when client configure plugin on Woovi platform.
      */
-    private const OPENCART_CONFIGURE_EVENT = "opencart-configure";
+    const OPENCART_CONFIGURE_EVENT = "opencart-configure";
 
     /**
      * Charge completed is when a charge is fully paid.
      */
-    private const OPENPIX_CHARGE_COMPLETED_EVENT = "OPENPIX:CHARGE_COMPLETED";
+    const OPENPIX_CHARGE_COMPLETED_EVENT = "OPENPIX:CHARGE_COMPLETED";
 
     /**
      * Load dependencies.

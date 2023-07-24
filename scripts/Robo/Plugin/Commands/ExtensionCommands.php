@@ -1,35 +1,16 @@
 <?php
 
-use Robo\Tasks;
-use Dotenv\Dotenv;
+namespace Scripts\Robo\Plugin\Commands;
+
+use Scripts\Robo\BaseTasks;
 use Robo\Symfony\ConsoleIO;
-use StubsGenerator\{StubsGenerator, StubsFinder};
-use Symfony\Component\Finder\Finder;
-use Symfony\Component\Finder\SplFileInfo;
+use Symfony\Component\Finder\{Finder, SplFileInfo};
 
 /**
- * This is project's console commands configuration for Robo task runner.
- *
- * @see https://robo.li/
+ * Commands for managing the extension installation.
  */
-class RoboFile extends Tasks
+class ExtensionCommands extends BaseTasks
 {
-    /**
-     * Manage environment variables.
-     */
-    private Dotenv $dotenv;
-
-    /**
-     * Create a new `RoboFile` instance.
-     */
-    public function __construct()
-    {
-        $this->stopOnFail();
-
-        $this->dotenv = Dotenv::createImmutable(__DIR__);
-        $this->dotenv->load();
-    }
-
     /**
      * Symlink the Woovi extension directory into the OpenCart `extension` directory.
      */
@@ -190,7 +171,7 @@ class RoboFile extends Tasks
         $collection->addCode($enableEnvironment);
 
         // Prepare build directory.
-        $buildDirectoryPath = __DIR__ . "/build";
+        $buildDirectoryPath = dirname(__DIR__, 4) . "/build";
 
         $prepareBuildDirectory = $this->taskFilesystemStack()
             ->mkdir($buildDirectoryPath);
@@ -220,7 +201,20 @@ class RoboFile extends Tasks
 
         $collection->run();
 
-        $consoleIO->success("Success! Build file is at " . $artifactPath);
+        $consoleIO->success("Success! Build file is at " . realpath($artifactPath));
+    }
+
+    /**
+     * Run extension linter.
+     */
+    public function extensionLint(): void
+    {
+        // Delete the stub file if you need regenerate stubs.
+        if (! file_exists(__DIR__ . "/../../../../stubs/opencart.php")) {
+            $this->stubsGenerate();
+        }
+
+        $this->_exec("phpstan analyse");
     }
 
     /**
@@ -240,156 +234,5 @@ class RoboFile extends Tasks
         ));
 
         return $paths;
-    }
-
-    /**
-     * Generate OpenCart stubs.
-     *
-     * This is needed for linting and intellisense.
-     */
-    public function stubsGenerate(): void
-    {
-        $this->dotenv->required(["OPENCART_PATH"])->notEmpty();
-
-        $opencartPath = getenv("OPENCART_PATH");
-
-        $generator = new StubsGenerator();
-
-        $finder = StubsFinder::create()->in($opencartPath);
-
-        $result = $generator->generate($finder)->prettyPrint();
-
-        $this->_mkdir("stubs");
-        $this->taskWriteToFile(__DIR__ . "/stubs/opencart.php")
-            ->text($result)
-            ->run();
-    }
-
-    /**
-     * Run extension linter.
-     */
-    public function extensionLint(): void
-    {
-        // Delete the stub file if you need regenerate stubs.
-        if (! file_exists(__DIR__ . "/stubs/opencart.php")) {
-            $this->stubsGenerate();
-        }
-
-        $this->_exec("phpstan analyse");
-    }
-
-    /**
-     * Setup OpenCart by running its installation script which creates our database.
-     */
-    public function opencartSetup()
-    {
-        $installScriptPath = getenv("OPENCART_PATH") . "/install/cli_install.php";
-
-        if (!file_exists($installScriptPath)) return;
-
-        $this->dotenv->required([
-            "OPENCART_PATH",
-            "OPENCART_USER_EMAIL",
-            "OPENCART_USER_PASSWORD",
-            "APP_URL",
-            "MYSQL_HOST",
-            "MYSQL_USER",
-            "MYSQL_PASSWORD",
-            "MYSQL_DATABASE",
-            "MYSQL_PORT"
-        ])->notEmpty();
-
-        $this->taskExec("php")
-            ->arg($installScriptPath)
-            ->arg("install")
-            ->options([
-                "username" => getenv("OPENCART_USER_NAME"),
-                "password" => getenv("OPENCART_USER_PASSWORD"),
-                "email" => getenv("OPENCART_USER_EMAIL"),
-                "http_server" => getenv("APP_URL"),
-                "db_driver" => "mysqli",
-                "db_hostname" => getenv("MYSQL_HOST"),
-                "db_username" => getenv("MYSQL_USER"),
-                "db_password" => getenv("MYSQL_PASSWORD"),
-                "db_database" => getenv("MYSQL_DATABASE"),
-                "db_port" => getenv("MYSQL_PORT"),
-                "db_prefix" => "oc_",
-            ])
-            ->run();
-    }
-
-    /**
-     * Run the PHP built-in server for OpenCart.
-     */
-    public function opencartServe()
-    {
-        $this->dotenv->required(["OPENCART_PATH", "APP_PORT"])->notEmpty();
-        $this->taskServer(getenv("APP_PORT"))
-            ->host("0.0.0.0")
-            ->dir(getenv("OPENCART_PATH"))
-            ->run();
-    }
-
-    /**
-     * Download OpenCart with version from .env file.
-     */
-    public function opencartDownload()
-    {
-        // TODO
-    }
-
-    /**
-     * Fixes OpenCart warnings like deleting the install directory and renaming the admin directory.
-     */
-    public function opencartFix()
-    {
-        $this->dotenv->required([
-            "OPENCART_PATH",
-            "OPENCART_STORAGE_PATH",
-            "APP_URL",
-            "EXTENSION_PATH",
-        ])->notEmpty();
-
-        // Remove install directory.
-        if (is_dir($installDirectoryPath = getenv("OPENCART_PATH") . "/install")) {
-            $this->_deleteDir($installDirectoryPath);
-        }
-
-        // Rename admin folder to administration.
-        if (is_dir($adminPath = getenv("OPENCART_PATH") . "/admin")) {
-            $this->_copyDir(
-                $adminPath,
-                getenv("OPENCART_PATH") . "/administration"
-            );
-            $this->_deleteDir($adminPath);
-        }
-
-        // Move storage folder out of public folder.
-        $this->_mkdir(getenv("OPENCART_STORAGE_PATH"));
-
-        if (is_dir($oldStoragePath = getenv("OPENCART_PATH") . "/system/storage")) {
-            $this->_copyDir($oldStoragePath, getenv("OPENCART_STORAGE_PATH"));
-            $this->_deleteDir($oldStoragePath);
-        }
-
-        $this->_chmod(getenv("OPENCART_STORAGE_PATH"), 0777, 0000, true);
-
-        // Fix storage path on config files.
-        $this->taskReplaceInFile(getenv("OPENCART_PATH") . "/config.php")
-            ->regex("~define\('DIR_STORAGE', .*\);~")
-            ->to("define('DIR_STORAGE', '" . getenv("OPENCART_STORAGE_PATH") . "');")
-            ->run();
-
-        $this->taskReplaceInFile(getenv("OPENCART_PATH") . "/administration/config.php")
-            ->regex("~define\('DIR_STORAGE', .*\);~")
-            ->to("define('DIR_STORAGE', '" . getenv("OPENCART_STORAGE_PATH") . "');")
-            ->run();
-
-        $this->taskReplaceInFile(getenv("OPENCART_PATH") . "/administration/config.php")
-            ->from("admin/")
-            ->to("administration/")
-            ->run();
-
-        echo "Current admin URL: <" . getenv("APP_URL") . "administration/>\n";
     }
 }

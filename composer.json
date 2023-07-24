@@ -21,6 +21,11 @@
             "Woovi\\Opencart\\": "extension/woovi/system/library/woovi/src"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Scripts\\": "scripts/"
+        }
+    },
     "scripts": {
         "style:check": "php-cs-fixer fix . --dry-run --diff --format=txt --verbose",
         "style:fix": "php-cs-fixer fix .",

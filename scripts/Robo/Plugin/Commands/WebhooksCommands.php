@@ -7,7 +7,6 @@ use Scripts\Robo\BaseTasks;
 use Opencart\Catalog\Controller\Extension\Woovi\Payment\WooviWebhooks;
 use Scripts\OpencartRunner;
 use MockPhpStream;
-use Opencart\System\Library\Response;
 use OpenPix\PhpSdk\Client;
 
 /**

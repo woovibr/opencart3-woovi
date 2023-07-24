@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 # Configure Timezone
 ENV TIMEZONE=UTC
@@ -13,17 +13,17 @@ RUN apt-get update \
     && apt-get install -y \
         gnupg curl ca-certificates wget netcat-traditional \
         zip unzip git software-properties-common \
-    && curl -sS "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14aa40ec0831756756d7f66c4f4ea0aae5267a6c" \
+    && curl -sS 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14aa40ec0831756756d7f66c4f4ea0aae5267a6c' \
         | gpg --dearmor \
         | tee /usr/share/keyrings/ppa_ondrej_php.gpg > /dev/null \
-    && echo "deb [signed-by=/usr/share/keyrings/ppa_ondrej_php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu focal main" > /etc/apt/sources.list.d/ppa_ondrej_php.list
+    && echo "deb [signed-by=/usr/share/keyrings/ppa_ondrej_php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu jammy main" > /etc/apt/sources.list.d/ppa_ondrej_php.list
 
 # Install PHP dependencies
 RUN apt-get update \
-    && apt-get install -y php8.0-cli \
-       php8.0-gd php8.0-zip php8.0-curl \
-       php8.0-mysql php8.0-mbstring php8.0-xml \
-       php8.0-xdebug
+    && apt-get install -y php8.1-cli \
+       php8.1-gd php8.1-zip php8.1-curl \
+       php8.1-mysql php8.1-mbstring php8.1-xml \
+       php8.1-xdebug
 
 # Cleanup
 RUN apt-get -y autoremove \
@@ -31,8 +31,8 @@ RUN apt-get -y autoremove \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Configure PHP
-COPY php.ini-development /etc/php8.0/php.ini
-COPY xdebug.ini /etc/php8.0/conf.d/xdebug.ini
+COPY php.ini-development /etc/php8.1/php.ini
+COPY xdebug.ini /etc/php8.1/conf.d/xdebug.ini
 
 # Add Composer
 RUN wget https://getcomposer.org/composer-stable.phar -O /usr/local/bin/composer \

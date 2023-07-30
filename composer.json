@@ -28,7 +28,7 @@
     "autoload-dev": {
         "psr-4": {
             "Scripts\\": "scripts/",
-            "Tests\\": "tests/",
+            "Tests\\": "tests/"
         }
     },
     "scripts": {
@@ -40,6 +40,9 @@
         ],
         "lint": "robo extension:lint",
         "build": "robo extension:build",
+        "test": "robo test",
+        "test:unit": "robo test:unit",
+        "test:integration": "robo test:integration",
         "post-install-cmd": "@robo extension:enable-environment production"
     },
     "config": {

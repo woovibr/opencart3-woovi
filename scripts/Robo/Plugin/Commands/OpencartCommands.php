@@ -2,6 +2,7 @@
 
 namespace Scripts\Robo\Plugin\Commands;
 
+use Robo\Symfony\ConsoleIO;
 use Scripts\Robo\BaseTasks;
 
 /**
@@ -62,11 +63,50 @@ class OpencartCommands extends BaseTasks
     }
 
     /**
-     * Download OpenCart with version from .env file.
+     * Downloads OpenCart files to the directory specified in the `.env` file.
+     *
+     * @param ?string $opencartDownloadUrl Url to .zip file.
+     *  If not informed, it will download from GitHub using the version
+     *  specified in the `.env` file.
      */
-    public function opencartDownload()
+    public function opencartDownload(ConsoleIO $consoleIO, ?string $opencartDownloadUrl = null)
     {
-        // TODO
+        $this->dotenv->required(["OPENCART_PATH"])->notEmpty();
+        $opencartPath = getenv("OPENCART_PATH");
+
+        if (empty($opencartDownloadUrl)) {
+            $this->dotenv->required(["OPENCART_VERSION"])->notEmpty();
+            $opencartVersion = getenv("OPENCART_VERSION");
+
+            $opencartDownloadUrl = "https://github.com/opencart/opencart/releases/download/$opencartVersion/opencart-$opencartVersion.zip";
+        }
+
+        $collection = $this->collectionBuilder();
+
+        $temporaryZipFile = $this->taskTmpFile("opencart-github-release" . $opencartVersion, ".zip");
+        $collection->addTask($temporaryZipFile);
+
+        $collection->addCode(function ()
+            use ($consoleIO, $opencartDownloadUrl, $temporaryZipFile) {
+            $consoleIO->info("Downloading zip file from `$opencartDownloadUrl` to `" . $temporaryZipFile->getPath() . "`");
+
+            file_put_contents(
+                $temporaryZipFile->getPath(),
+                file_get_contents($opencartDownloadUrl)
+            );
+        });
+
+        $opencartTemporaryDir = $this->taskTmpDir("opencart-github-release-extracted" . $opencartVersion);
+
+        $collection->taskExtract($temporaryZipFile->getPath())
+            ->to($opencartTemporaryDir->getPath())
+            ->preserveTopDirectory(false);
+
+        $collection->taskFilesystemStack()
+            ->mkdir($opencartPath)
+            ->mirror($opencartTemporaryDir->getPath() . "/upload", $opencartPath);
+
+        $collection->run();
     }
 
     /**

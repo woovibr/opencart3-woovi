@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.1/phpunit.xsd"
+    bootstrap="extension/woovi/system/library/woovi/vendor/autoload.php"
+    colors="true"
+    executionOrder="random"
+    failOnRisky="true"
+    failOnWarning="true"
+    verbose="true"
+    failOnEmptyTestSuite="true"
+>
+    <testsuites>
+        <testsuite name="Integration Tests">
+            <directory suffix="Test.php">tests/Integration</directory>
+        </testsuite>
+        <testsuite name="Unit Tests">
+            <directory suffix="Test.php">tests/Unit</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <ini name="error_reporting" value="-1"/>
+        <ini name="display_errors" value="On"/>
+    </php>
+    <coverage>
+        <include>
+            <directory suffix=".php">extension/woovi</directory>
+        </include>
+    </coverage>
+</phpunit>

@@ -209,17 +209,20 @@ class ExtensionCommands extends BaseTasks
      */
     public function extensionLint(): void
     {
-        // Delete the stub file if you need regenerate stubs.
+        $collection = $this->collectionBuilder();
+
+        // You need delete the stub file if you need regenerate stubs.
         if (! file_exists(__DIR__ . "/../../../../stubs/opencart.php")) {
-            $this->stubsGenerate();
+            $collection->taskExec("robo stubs:generate");
         }
 
-        $this->_exec("phpstan analyse");
+        $collection->taskExec("phpstan analyse");
+        $collection->run();
     }
 
     /**
      * Find paths of files that will be included in artifact.
-     * 
+     *
      * @return array<string, string>
      */
     private function findArtifactIncludedFilePaths(string $temporaryWorkDir): array

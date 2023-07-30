@@ -3,4 +3,4 @@
 export USER_ID=$(id -u $USER)
 export GROUP_ID=$(id -g $USER)
 
-docker compose -f docker-compose.dev.yml ${@:-up}
+docker compose -f docker-compose.dev.yml ${@:-up --build}

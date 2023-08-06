@@ -106,6 +106,8 @@ class OpencartCommands extends BaseTasks
             ->mkdir($opencartPath)
             ->mirror($opencartTemporaryDir->getPath() . "/upload", $opencartPath);
 
+
+
         $collection->run();
     }
 
@@ -124,15 +126,6 @@ class OpencartCommands extends BaseTasks
         // Remove install directory.
         if (is_dir($installDirectoryPath = getenv("OPENCART_PATH") . "/install")) {
             $this->_deleteDir($installDirectoryPath);
-        }
-
-        // Rename admin folder to administration.
-        if (is_dir($adminPath = getenv("OPENCART_PATH") . "/admin")) {
-            $this->_copyDir(
-                $adminPath,
-                getenv("OPENCART_PATH") . "/administration"
-            );
-            $this->_deleteDir($adminPath);
         }
 
         // Move storage folder out of public folder.
@@ -155,12 +148,5 @@ class OpencartCommands extends BaseTasks
             ->regex("~define\('DIR_STORAGE', .*\);~")
             ->to("define('DIR_STORAGE', '" . getenv("OPENCART_STORAGE_PATH") . "');")
             ->run();
-
-        $this->taskReplaceInFile(getenv("OPENCART_PATH") . "/administration/config.php")
-            ->from("admin/")
-            ->to("administration/")
-            ->run();
-
-        echo "Current admin URL: <" . getenv("APP_URL") . "administration/>\n";
     }
 }

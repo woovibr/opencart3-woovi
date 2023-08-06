@@ -36,7 +36,10 @@ class ExtensionCommands extends BaseTasks
         $_SERVER["REMOTE_ADDR"] = "127.0.0.1";
 
         ob_start();
-        require_once("index.php");
+        $application_config = "admin";
+        require_once("config.php");
+        require_once(DIR_SYSTEM . "startup.php");
+        require(DIR_SYSTEM . "framework.php");
         ob_get_clean();
 
         // Login user
@@ -47,32 +50,6 @@ class ExtensionCommands extends BaseTasks
         $session->data["user_id"] = $user->getId();
         $session->data["user_token"] = bin2hex(openssl_random_pseudo_bytes(16));
 
-        $extensionSettingModel = $registry->get("model_setting_extension");
-        $settingModel = $registry->get("model_setting_setting");
-
-        // Add extension install
-        if (empty($extensionSettingModel->getInstallByCode("woovi"))) {
-            $installManifest = json_decode(file_get_contents(getenv("OPENCART_PATH") . "/extension/woovi/install.json"), true);
-
-            $extensionInstallId = $extensionSettingModel->addInstall([
-                "extension_id"          => 0,
-                "extension_download_id" => 0,
-            ] + $installManifest);
-
-            $extensionSettingModel->editStatus($extensionInstallId, true);
-
-            $settingModel->editSetting("payment_woovi", ["payment_woovi_status" => true]);
-        }
-
-        $extensionInstallId = $extensionSettingModel->getInstallByCode("woovi")["extension_install_id"];
-
-        // Add extension path
-        $paths = $extensionSettingModel->getPaths($adminControllerPath = "woovi/admin/controller/payment/woovi.php");
-
-        if (count($paths) == 0) {
-            $extensionSettingModel->addPath($extensionInstallId, $adminControllerPath);
-        }
-
         // Run extension installer
         $request = $registry->get("request");
 
@@ -81,7 +58,7 @@ class ExtensionCommands extends BaseTasks
 
         $loader = $registry->get("load");
 
-        $loader->controller("extension/payment|install");
+        $loader->controller("extension/extension/payment|install");
     }
 
     /**

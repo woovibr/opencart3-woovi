@@ -4,10 +4,8 @@ services:
   opencart:
     build:
       context: docker
-      dockerfile: Dockerfile.dev
       args:
         EXTENSION_PATH:
-        OPENCART_VERSION:
         APP_PORT:
         DOCKER_USER:
         OPENCART_PATH:

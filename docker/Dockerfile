@@ -26,7 +26,7 @@ RUN apt-get -y autoremove \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY php.ini-development /etc/php7.4/php.ini
+COPY php.ini /etc/php7.4/php.ini
 COPY xdebug.ini /etc/php7.4/conf.d/xdebug.ini
 
 RUN wget https://getcomposer.org/composer-stable.phar -O /usr/local/bin/composer \
@@ -35,14 +35,13 @@ RUN wget https://getcomposer.org/composer-stable.phar -O /usr/local/bin/composer
 ARG EXTENSION_PATH
 ARG OPENCART_PATH
 ARG OPENCART_STORAGE_PATH
-ARG OPENCART_VERSION
 ARG DOCKER_USER
 ARG APP_PORT
 ARG USER_ID
 ARG GROUP_ID
 
-COPY entrypoint-dev.sh /usr/local/bin/docker-entrypoint-dev
-RUN chmod +x /usr/local/bin/docker-entrypoint-dev
+COPY setup-container /usr/local/bin/setup-container
+RUN chmod +x /usr/local/bin/setup-container
 
 RUN groupadd -o -g ${GROUP_ID} $DOCKER_USER \
     && useradd -o -l -u ${USER_ID} -g $DOCKER_USER $DOCKER_USER \
@@ -52,20 +51,7 @@ USER $DOCKER_USER
 VOLUME $OPENCART_PATH
 VOLUME $OPENCART_STORAGE_PATH
 
-WORKDIR $OPENCART_PATH
-
-RUN curl -o opencart.zip -fL "https://github.com/opencart/opencart/releases/download/$OPENCART_VERSION/opencart-$OPENCART_VERSION.zip"
-
-RUN unzip opencart.zip -d opencart \
-    && cp -r opencart/upload/* . \
-    && rm -rf opencart.zip opencart \
-    && mv config-dist.php config.php \
-    && mv admin/config-dist.php admin/config.php \
-    && mkdir -p $OPENCART_STORAGE_PATH \
-    && chown -R $DOCKER_USER:$DOCKER_USER $OPENCART_PATH $OPENCART_STORAGE_PATH \
-    && chmod -R 777 . $OPENCART_STORAGE_PATH
-
 WORKDIR $EXTENSION_PATH
 
 EXPOSE $APP_PORT
-ENTRYPOINT ["docker-entrypoint-dev"]
+ENTRYPOINT ["setup-container"]

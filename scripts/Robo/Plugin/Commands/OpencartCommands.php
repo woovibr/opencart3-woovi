@@ -74,6 +74,13 @@ class OpencartCommands extends BaseTasks
         $this->dotenv->required(["OPENCART_PATH"])->notEmpty();
         $opencartPath = getenv("OPENCART_PATH");
 
+        $isOpencartDownloaded = count(scandir($opencartPath)) > 2;
+
+        if ($isOpencartDownloaded) {
+            $consoleIO->info("OpenCart is downloaded.");
+            return;
+        }
+
         if (empty($opencartDownloadUrl)) {
             $this->dotenv->required(["OPENCART_VERSION"])->notEmpty();
             $opencartVersion = getenv("OPENCART_VERSION");
@@ -104,9 +111,10 @@ class OpencartCommands extends BaseTasks
 
         $collection->taskFilesystemStack()
             ->mkdir($opencartPath)
-            ->mirror($opencartTemporaryDir->getPath() . "/upload", $opencartPath);
-
-
+            ->mirror($opencartTemporaryDir->getPath() . "/upload", $opencartPath)
+            ->chmod($opencartPath, 0777, 0000, true)
+            ->rename($opencartPath . "/admin/config-dist.php", $opencartPath . "/admin/config.php")
+            ->rename($opencartPath . "/config-dist.php", $opencartPath . "/config.php");
 
         $collection->run();
     }

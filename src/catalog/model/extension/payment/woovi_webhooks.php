@@ -1,15 +1,11 @@
 <?php
 
-namespace Opencart\Catalog\Model\Extension\Woovi\Payment;
-
-use Opencart\System\Engine\Model;
-
 /**
  * Called by webhook configuration.
  * 
  * @property \Opencart\System\Library\DB $db
  */
-class WooviWebhooks extends Model
+class ModelExtensionWooviWebhooks extends Model
 {
     /**
      * Configure new App ID.

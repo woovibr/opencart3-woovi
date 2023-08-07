@@ -1,9 +1,5 @@
 <?php
 
-namespace Opencart\Catalog\Controller\Extension\Woovi\Payment;
-
-use Opencart\System\Engine\Controller;
-
 /**
  * OpenCart event handlers.
  * 
@@ -15,7 +11,7 @@ use Opencart\System\Engine\Controller;
  * 
  * @phpstan-import-type WooviEnvironment from \Woovi\Opencart\Extension
  */
-class WooviEvents extends Controller
+class ControllerExtensionWooviEvents extends Controller
 {
     /**
      * Load necessary dependencies.

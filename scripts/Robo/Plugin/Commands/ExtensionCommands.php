@@ -31,8 +31,10 @@ class ExtensionCommands extends BaseTasks
         foreach ($entries as $fromPath) {
             $toPath = str_replace($baseDirectory, $opencartPath, $fromPath);
 
-            if (file_exists($fromPath)) continue;
-            
+            if (file_exists($toPath)) {
+                continue;
+            }
+
             $filesystemStack->symlink($fromPath, $toPath);
         }
 

@@ -1,9 +1,5 @@
 <?php
 
-namespace Opencart\Admin\Model\Extension\Woovi\Payment;
-
-use Opencart\System\Engine\Model;
-
 /**
  * This model integrates the extension with the OpenCart database.
  *
@@ -18,7 +14,7 @@ use Opencart\System\Engine\Model;
  * @property \Opencart\Admin\Model\Setting\Extension $model_setting_extension
  * @property \Opencart\System\Engine\Config $config
  */
-class Woovi extends Model
+class ModelExtensionPaymentWoovi extends Model
 {
     /**
      * Regex for validating CPF/CNPJ field format.
@@ -113,7 +109,7 @@ class Woovi extends Model
         $orderStatusWhenWaitingId = $settings["payment_woovi_order_status_when_waiting_id"] ?? "";
         
         if (empty($orderStatusWhenWaitingId)) {
-            $orderStatusWhenWaitingId = $this->model_setting_setting->getValue("config_order_status_id");
+            $orderStatusWhenWaitingId = $this->model_setting_setting->getSettingValue("config_order_status_id");
         }
 
         if (empty($orderStatusWhenWaitingId)) {
@@ -187,32 +183,23 @@ class Woovi extends Model
         $this->model_setting_event->deleteEventByCode("woovi_catalog_view_common_success_before");
         $this->model_setting_event->deleteEventByCode("woovi_catalog_controller_checkout_success_before");
 
-        $this->model_setting_event->addEvent([
-            "code" => "woovi_catalog_view_account_order_info_before",
-            "description" => "Add Pix Qr Code display button to order info page.",
-            "trigger" => "catalog/view/account/order_info/before",
-            "action" => "extension/woovi/payment/woovi_events|handleCatalogViewAccountOrderInfoBeforeEvent",
-            "status" => true,
-            "sort_order" => 0,
-        ]);
+        $this->model_setting_event->addEvent(
+            "woovi_catalog_view_account_order_info_before",
+            "catalog/view/account/order_info/before",
+            "extension/payment/woovi_events/handleCatalogViewAccountOrderInfoBeforeEvent",
+        );
 
-        $this->model_setting_event->addEvent([
-            "code" => "woovi_catalog_controller_checkout_success_before",
-            "description" => "Ensures Woovi Qr Code is processed only on correct Pix orders.",
-            "trigger" => "catalog/controller/checkout/success/before",
-            "action" => "extension/woovi/payment/woovi_events|handleCatalogControllerCheckoutSuccessBeforeEvent",
-            "status" => true,
-            "sort_order" => 0,
-        ]);
+        $this->model_setting_event->addEvent(
+            "woovi_catalog_controller_checkout_success_before",
+            "catalog/controller/checkout/success/before",
+            "extension/payment/woovi_events/handleCatalogControllerCheckoutSuccessBeforeEvent"
+        );
 
-        $this->model_setting_event->addEvent([
-            "code" => "woovi_catalog_view_common_success_before",
-            "description" => "Add a QR Code on checkout success pages.",
-            "trigger" => "catalog/view/common/success/before",
-            "action" => "extension/woovi/payment/woovi_events|handleCatalogViewCommonSuccessBeforeEvent",
-            "status" => true,
-            "sort_order" => 0,
-        ]);
+        $this->model_setting_event->addEvent(
+            "woovi_catalog_view_common_success_before",
+            "catalog/view/common/success/before",
+            "extension/payment/woovi_events/handleCatalogViewCommonSuccessBeforeEvent"
+        );
     }
 
     /**
@@ -235,7 +222,7 @@ class Woovi extends Model
 
         // Store latest upgraded version.
         /** @var array{name: string, version: string, code: string, link: string, author: string} $manifest */
-        $manifest = json_decode((string) file_get_contents(__DIR__ . "/../../../install.json"), true);
+        $manifest = json_decode((string) file_get_contents(__DIR__ . "/../../../../install.json"), true);
 
         $currentVersion = $manifest["version"];
 

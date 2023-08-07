@@ -74,12 +74,12 @@ class ExtensionCommands extends BaseTasks
         // Run extension installer
         $request = $registry->get("request");
 
-        $request->get["code"] = "woovi";
+        $request->get["route"] = "extension/extension/payment/install";
         $request->get["extension"] = "woovi";
 
         $loader = $registry->get("load");
 
-        $loader->controller("extension/extension/payment|install");
+        $loader->controller("extension/extension/payment/install");
     }
 
     /**

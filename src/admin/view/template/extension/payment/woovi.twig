@@ -4,24 +4,24 @@
 <div id="content">
     <div class="page-header">
         <div class="container-fluid">
-            <div class="float-end">
+            <div class="pull-right">
                 <button
                     type="submit"
-                    form="form-module"
-                    data-bs-toggle="tooltip"
+                    form="form-payment"
+                    data-toggle="tooltip"
                     title="{{ lang["Save"] }}"
                     class="btn btn-primary"
                 >
-                    <i class="fa-solid fa-save"></i>
+                    <i class="fa fa-save"></i>
                 </button>
 
                 <a
                     href="{{ previous_route }}"
-                    data-bs-toggle="tooltip"
+                    data-toggle="tooltip"
                     title="{{ lang["Previous page"] }}"
                     class="btn btn-light"
                 >
-                    <i class="fa-solid fa-reply"></i>
+                    <i class="fa fa-reply"></i>
                 </a>
             </div>
 
@@ -29,7 +29,7 @@
 
             <ol class="breadcrumb">
                 {% for breadcrumb in breadcrumbs %}
-                    <li class="breadcrumb-item">
+                    <li>
                         <a href="{{ breadcrumb.href }}">
                             {{ breadcrumb.text }}
                         </a>
@@ -40,42 +40,52 @@
     </div>
 
     <div class="container-fluid">
-        <div class="card">
-            <div class="card-header">
-                <i class="fa-solid fa-pencil"></i>
+        {% if woovi_warning %}
+            <div class="alert alert-danger alert-dismissible">
+                <i class="fa fa-exclamation-circle"></i>
+                {{ woovi_warning }}
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+        {% endif %}
 
-                {{ lang["Edit Pix extension"] }}
+        {% if woovi_success %}
+            <div class="alert alert-success alert-dismissible">
+                <i class="fa fa-exclamation-circle"></i>
+                {{ woovi_success }}
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+        {% endif %}
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <i class="fa fa-pencil"></i>
+
+                    {{ lang["Edit Pix extension"] }}
+                </h3>
             </div>
 
-            <div class="card-body">
+            <div class="panel-body">
                 <form
-                    id="form-module"
+                    id="form-payment"
                     action="{{ save_route }}"
                     method="post"
-                    data-oc-toggle="ajax"
+                    class="form-horizontal"
                 >
-                    <div class="row mb-3">
-                        <label for="input-status" class="col-sm-2 col-form-label">
+                    <div class="form-group">
+                        <label for="input-status" class="col-sm-2 control-label">
                             {{ lang["Status"] }}
                         </label>
                         <div class="col-sm-10">
-                            <div class="form-check form-switch form-switch-lg">
-                                <input
-                                    type="hidden"
-                                    name="payment_woovi_status"
-                                    value="0"
-                                />
-
-                                <input
-                                    type="checkbox"
-                                    name="payment_woovi_status"
-                                    value="1"
-                                    id="input-status"
-                                    class="form-check-input"
-
-                                    {% if payment_woovi_status %} checked{% endif %}
-                                />
-                            </div>
+                            <select name="payment_woovi_status" id="input-status" class="form-control">
+                                {% if payment_woovi_status %}
+                                    <option value="1" selected="selected">{{ text_enabled }}</option>
+                                    <option value="0">{{ text_disabled }}</option>
+                                {% else %}
+                                    <option value="1">{{ text_enabled }}</option>
+                                    <option value="0" selected="selected">{{ text_disabled }}</option>
+                                 {% endif %}
+                            </select>
 
                             <p>
                                 {{ lang["Use this Webhook URL to be registered at Woovi:"] }}
@@ -97,8 +107,8 @@
                         </div>
                     </div>
 
-                    <div class="row mb-3">
-                        <label for="input-app-id" class="col-sm-2 col-form-label">
+                    <div class="form-group">
+                        <label for="input-app-id" class="col-sm-2 control-label">
                             {{ lang["App ID"] }}
                         </label>
                         <div class="col-sm-10">
@@ -113,17 +123,17 @@
                         </div>
                     </div>
 
-                    <div class="row mb-3">
+                    <div class="form-group">
                         <label
                             for="input-order-status"
-                            class="col-sm-2 col-form-label"
+                            class="col-sm-2 control-label"
                         >
                             {{ lang["Change order status after issuing the pix to:"] }}
                         </label>
                         <div class="col-sm-10">
                             <select
                                 name="payment_woovi_order_status_when_waiting_id" id="input-order-status"
-                                class="form-select"
+                                class="form-control"
                             >
                                 {% for order_status in order_statuses %}
                                     <option
@@ -137,22 +147,24 @@
                         </div>
                     </div>
 
-                    <div class="row mb-3">
+                    <div class="form-group">
                         <label
                             for="input-order-status"
-                            class="col-sm-2 col-form-label"
+                            class="col-sm-2 control-label"
                         >
                             {{ lang["Change order status after pix charge is paid to:"] }}
                         </label>
                         <div class="col-sm-10">
                             <select
                                 name="payment_woovi_order_status_when_paid_id" id="input-order-status"
-                                class="form-select"
+                                class="form-control"
                             >
                                 {% for order_status in order_statuses %}
                                     <option
                                         value="{{ order_status.order_status_id }}"
-                                        {% if order_status.order_status_id == payment_woovi_order_status_when_paid_id %} selected="selected"{% endif %}
+                                        {% if order_status.order_status_id == payment_woovi_order_status_when_paid_id %}
+                                        selected="selected"
+                                        {% endif %}
                                     >
                                         {{ order_status.name }}
                                     </option>
@@ -161,45 +173,37 @@
                         </div>
                     </div>
 
-                    <div class="row mb-3">
+                    <div class="form-group">
                         <label
                             for="input-notify-customer"
-                            class="col-sm-2 col-form-label"
+                            class="col-sm-2 control-label"
                         >
                             {{ lang["Notify customer when order is paid?"] }}
                         </label>
                         <div class="col-sm-10">
-                            <div class="form-check form-switch form-switch-lg">
-                                <input
-                                    type="hidden"
-                                    name="payment_woovi_notify_customer"
-                                    value="0"
-                                />
-
-                                <input
-                                    type="checkbox"
-                                    name="payment_woovi_notify_customer"
-                                    value="1"
-                                    id="input-notify-customer"
-                                    class="form-check-input"
-
-                                    {% if payment_woovi_notify_customer %} checked{% endif %}
-                                />
-                            </div>
+                            <select name="payment_woovi_notify_customer" id="input-status" class="form-control">
+                                {% if payment_woovi_notify_customer %}
+                                    <option value="1" selected="selected">{{ text_yes }}</option>
+                                    <option value="0">{{ text_no }}</option>
+                                {% else %}
+                                    <option value="1">{{ text_yes }}</option>
+                                    <option value="0" selected="selected">{{ text_no }}</option>
+                                 {% endif %}
+                            </select>
                         </div>
                     </div>
 
-                    <div class="row mb-3">
+                    <div class="form-group">
                         <label
                             for="input-tax-id-custom-field-id"
-                            class="col-sm-2 col-form-label"
+                            class="col-sm-2 control-label"
                         >
                             {{ lang["Which custom field to use for CPF/CNPJ?"] }}
                         </label>
                         <div class="col-sm-10">
                             <select
                                 name="payment_woovi_tax_id_custom_field_id" id="input-tax-id-custom-field-id"
-                                class="form-select"
+                                class="form-control"
                             >
                                 <option value="">{{ lang["None"] }}</option>
 

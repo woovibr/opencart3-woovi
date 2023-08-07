@@ -21,7 +21,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Woovi\\Opencart\\": "extension/woovi/system/library/woovi/src"
+            "Woovi\\Opencart\\": "src/system/library/woovi/src"
         }
     },
     "autoload-dev": {
@@ -46,7 +46,7 @@
     },
     "config": {
         "bin-dir": "vendor-bin",
-        "vendor-dir": "extension/woovi/system/library/woovi/vendor",
+        "vendor-dir": "src/system/library/woovi/vendor",
         "allow-plugins": {
             "php-http/discovery": true
         }

@@ -15,10 +15,6 @@ class OpencartCommands extends BaseTasks
      */
     public function opencartSetup()
     {
-        $installScriptPath = getenv("OPENCART_PATH") . "/install/cli_install.php";
-
-        if (!file_exists($installScriptPath)) return;
-
         $this->dotenv->required([
             "OPENCART_PATH",
             "OPENCART_USER_EMAIL",
@@ -30,6 +26,10 @@ class OpencartCommands extends BaseTasks
             "MYSQL_DATABASE",
             "MYSQL_PORT"
         ])->notEmpty();
+
+        $installScriptPath = getenv("OPENCART_PATH") . "/install/cli_install.php";
+
+        if (!file_exists($installScriptPath)) return;
 
         $this->taskExec("php")
             ->arg($installScriptPath)
@@ -152,7 +152,7 @@ class OpencartCommands extends BaseTasks
             ->to("define('DIR_STORAGE', '" . getenv("OPENCART_STORAGE_PATH") . "');")
             ->run();
 
-        $this->taskReplaceInFile(getenv("OPENCART_PATH") . "/administration/config.php")
+        $this->taskReplaceInFile(getenv("OPENCART_PATH") . "/admin/config.php")
             ->regex("~define\('DIR_STORAGE', .*\);~")
             ->to("define('DIR_STORAGE', '" . getenv("OPENCART_STORAGE_PATH") . "');")
             ->run();

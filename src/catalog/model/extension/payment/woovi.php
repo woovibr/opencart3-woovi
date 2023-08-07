@@ -1,16 +1,12 @@
 <?php
 
-namespace Opencart\Catalog\Model\Extension\Woovi\Payment;
-
-use Opencart\System\Engine\Model;
-
 /**
  * Add Pix payment method to OpenCart.
  * 
  * @property \Opencart\System\Engine\Loader $load
  * @property \Opencart\System\Library\Language $language
  */
-class Woovi extends Model
+class ModelExtensionPaymentWoovi extends Model
 {
     /**
      * Called when OpenCart show available payment methods to user.

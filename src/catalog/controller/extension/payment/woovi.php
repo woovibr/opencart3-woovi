@@ -1,8 +1,5 @@
 <?php
 
-namespace Opencart\Catalog\Controller\Extension\Woovi\Payment;
-
-use Opencart\System\Engine\Controller;
 use OpenPix\PhpSdk\ApiErrorException;
 use Psr\Http\Client\ClientExceptionInterface;
 
@@ -26,7 +23,7 @@ use Psr\Http\Client\ClientExceptionInterface;
  * @phpstan-type Charge array{paymentLinkUrl: string, qrCodeImage: string, brCode: string, pixKey: string, correlationID: string}
  * @phpstan-type CustomerData array{name: string, email: string, taxID?: string, phone?: string}
  */
-class Woovi extends Controller
+class ControllerExtensionPaymentWoovi extends Controller
 {
     /**
      * Scope of log messages.

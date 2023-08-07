@@ -1,9 +1,5 @@
 <?php
 
-namespace Opencart\Catalog\Controller\Extension\Woovi\Payment;
-
-use Opencart\System\Engine\Controller;
-
 /**
  * Invoked by the Woovi API.
  * 
@@ -22,7 +18,7 @@ use Opencart\System\Engine\Controller;
  * @phpstan-type OpencartConfigurePayload array{event: self::OPENCART_CONFIGURE_EVENT, appID: string}
  * @phpstan-type ChargeCompletedPayload array{event: self::OPENPIX_CHARGE_COMPLETED_EVENT, charge: array{correlationID: string}}
  */
-class WooviWebhooks extends Controller
+class ControllerExtensionPaymentWooviWebhooks extends Controller
 {
     /**
      * Called when testing webhooks.

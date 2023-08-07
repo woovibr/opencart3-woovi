@@ -5,4 +5,4 @@ opencart
 opencart-storage
 phpstan.neon
 stubs
-extension/woovi/system/config/woovi.php
+src/system/config/woovi.php

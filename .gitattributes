@@ -15,6 +15,6 @@ docker export-ignore
 dev export-ignore
 phpstan.dist.neon export-ignore
 LICENSE export-ignore
-extension/woovi/system/config/woovi.php export-ignore
+src/system/config/woovi.php export-ignore
 
 *.php diff=php

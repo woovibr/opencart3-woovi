@@ -12,12 +12,31 @@ use Symfony\Component\Finder\{Finder, SplFileInfo};
 class ExtensionCommands extends BaseTasks
 {
     /**
-     * Symlink the Woovi extension directory into the OpenCart `extension` directory.
+     * Symlink the Woovi extension directory into the OpenCart code base.
      */
     public function extensionLink()
     {
         $this->dotenv->required(["EXTENSION_PATH", "OPENCART_PATH"])->notEmpty();
-        $this->_symlink(getenv("EXTENSION_PATH") . "/extension/woovi", getenv("OPENCART_PATH") . "/extension/woovi");
+        
+        $baseDirectory = getenv("EXTENSION_PATH") . "/src";
+        $opencartPath = getenv("OPENCART_PATH");
+
+        $finder = (new Finder())
+            ->in([$baseDirectory . "/admin", $baseDirectory . "/catalog", $baseDirectory . "/system"]);
+
+        $entries = iterator_to_array($finder);
+
+        $filesystemStack = $this->taskFilesystemStack();
+
+        foreach ($entries as $fromPath) {
+            $toPath = str_replace($baseDirectory, $opencartPath, $fromPath);
+
+            if (file_exists($fromPath)) continue;
+            
+            $filesystemStack->symlink($fromPath, $toPath);
+        }
+
+        $filesystemStack->run();
     }
 
     /**
@@ -28,7 +47,7 @@ class ExtensionCommands extends BaseTasks
         $this->dotenv->required(["APP_PORT", "OPENCART_PATH"])->notEmpty();
 
         // Load OpenCart
-        chdir(getenv("OPENCART_PATH") . "/administration");
+        chdir(getenv("OPENCART_PATH") . "/admin");
 
         $_SERVER["SERVER_PORT"] = getenv("APP_PORT");
         $_SERVER["SERVER_PROTOCOL"] = "CLI";
@@ -79,7 +98,7 @@ class ExtensionCommands extends BaseTasks
      */
     public function extensionEnableEnvironment(ConsoleIO $consoleIO, string $environment, array $opts = ["force|f" => false])
     {
-        $configPath = getcwd() . "/extension/woovi/system/config/woovi.";
+        $configPath = getcwd() . "/src/system/config/woovi.";
         $envTemplatePath = $configPath . $environment . ".php";
         $envPath = $configPath . "php";
 
@@ -205,7 +224,7 @@ class ExtensionCommands extends BaseTasks
     private function findArtifactIncludedFilePaths(string $temporaryWorkDir): array
     {
         $finder = (new Finder)->files()
-            ->in($temporaryWorkDir . "/extension/woovi")
+            ->in($temporaryWorkDir . "/src")
             ->ignoreDotFiles(false);
 
         $paths = array_flip(array_map(

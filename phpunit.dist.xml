@@ -2,7 +2,7 @@
 <phpunit
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.1/phpunit.xsd"
-    bootstrap="extension/woovi/system/library/woovi/vendor/autoload.php"
+    bootstrap="src/system/library/woovi/vendor/autoload.php"
     colors="true"
     executionOrder="random"
     failOnRisky="true"
@@ -24,7 +24,7 @@
     </php>
     <coverage>
         <include>
-            <directory suffix=".php">extension/woovi</directory>
+            <directory suffix=".php">src</directory>
         </include>
     </coverage>
 </phpunit>

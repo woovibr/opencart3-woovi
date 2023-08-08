@@ -11,15 +11,15 @@
  * 
  * @phpstan-import-type WooviEnvironment from \Woovi\Opencart\Extension
  */
-class ControllerExtensionWooviEvents extends Controller
+class ControllerExtensionPaymentWooviEvents extends Controller
 {
     /**
      * Load necessary dependencies.
      */
     private function load(): void
     {
-        $this->load->model("extension/woovi/payment/woovi_order");
-        $this->load->config("extension/woovi/woovi");
+        $this->load->model("extension/payment/woovi_order");
+        $this->load->config("woovi");
     }
 
     /**
@@ -72,7 +72,7 @@ class ControllerExtensionWooviEvents extends Controller
         $this->load();
 
         // Ensures that the current correlationID matches the latest order in the session.
-        $wooviOrder = $this->model_extension_woovi_payment_woovi_order->getWooviOrderByCorrelationID($this->session->data["woovi_correlation_id"]);
+        $wooviOrder = $this->model_extension_payment_woovi_order->getWooviOrderByCorrelationID($this->session->data["woovi_correlation_id"]);
 
         // Ignore if correlationID is not registered.
         if (! $wooviOrder) return;
@@ -106,7 +106,7 @@ class ControllerExtensionWooviEvents extends Controller
         $this->load();
 
         // Fetch correlationID using the opencart order id.
-        $wooviOrder = $this->model_extension_woovi_payment_woovi_order->getWooviOrderByOpencartOrderId(intval($data["order_id"]));
+        $wooviOrder = $this->model_extension_payment_woovi_order->getWooviOrderByOpencartOrderId(intval($data["order_id"]));
 
         if (empty($wooviOrder)) return;
 

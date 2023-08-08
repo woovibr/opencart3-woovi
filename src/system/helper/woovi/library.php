@@ -3,7 +3,7 @@
 use Woovi\Opencart\Extension;
 
 // Load Composer Autoloader
-require_once __DIR__ . "/../library/woovi/vendor/autoload.php";
+require_once __DIR__ . "/../../library/woovi/vendor/autoload.php";
 
 /** @var object{registry: \Opencart\System\Engine\Registry} $this */
 

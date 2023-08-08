@@ -15,7 +15,7 @@ class ModelExtensionPaymentWoovi extends Model
      */
     public function getMethod(): array
     {
-        $this->load->language("extension/woovi/payment/woovi");
+        $this->load->language("extension/payment/woovi");
 
         return [
             "title" => $this->language->get("heading_title"),

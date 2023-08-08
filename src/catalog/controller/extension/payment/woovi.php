@@ -37,11 +37,11 @@ class ControllerExtensionPaymentWoovi extends Controller
      */
     public function index(): string
     {
-        $this->load->language("extension/woovi/payment/woovi");
+        $this->load->language("extension/payment/woovi");
 
         $showTaxIdInput = empty($this->getTaxIDFromSession());
 
-        return $this->load->view("extension/woovi/payment/woovi", [
+        return $this->load->view("extension/payment/woovi", [
             "language" => $this->config->get("config_language"),
             "lang" => $this->language->all(),
             "show_tax_id_input" => $showTaxIdInput,
@@ -56,8 +56,8 @@ class ControllerExtensionPaymentWoovi extends Controller
      */
     public function confirm(): void
     {
-        $this->load->model("extension/woovi/payment/woovi_order");
-        $this->load->language("extension/woovi/payment/woovi");
+        $this->load->model("extension/payment/woovi_order");
+        $this->load->language("extension/payment/woovi");
 
         if (! $this->isConfirmationRequestValid()) return;
 
@@ -100,8 +100,8 @@ class ControllerExtensionPaymentWoovi extends Controller
             return false;
         }
 
-        if (empty($this->session->data["payment_method"])
-            || $this->session->data["payment_method"] != "woovi") {
+        if (empty($this->session->data["payment_method"]["code"])
+            || $this->session->data["payment_method"]["code"] != "woovi") {
             $this->emitError($this->language->get("Payment method is incorrect!"));
 
             return false;
@@ -122,7 +122,7 @@ class ControllerExtensionPaymentWoovi extends Controller
         // Check if an order has already been registered with a pix charge.
         $orderId = intval($this->session->data["order_id"]);
 
-        $wooviOrder = $this->model_extension_woovi_payment_woovi_order->getWooviOrderByOpencartOrderId($orderId);
+        $wooviOrder = $this->model_extension_payment_woovi_order->getWooviOrderByOpencartOrderId($orderId);
 
         if (! empty($wooviOrder)) {
             $this->emitError(["warning" => $this->language->get("There is already a charge for this order!")]);
@@ -138,8 +138,27 @@ class ControllerExtensionPaymentWoovi extends Controller
      */
     private function getTaxIDFromSession(): string
     {
+        $this->load->model("account/customer");
+
         $taxIdCustomFieldId = $this->config->get("payment_woovi_tax_id_custom_field_id");
-        $customFields = $this->session->data["customer"]["custom_field"];
+        
+        $customerId = $this->session->data["customer_id"];
+
+        if (empty($customerId)) {
+            return "";
+        }
+
+        $customer = $this->model_account_customer->getCustomer($customerId);
+        
+        if (empty($customer["custom_field"])) {
+            return "";
+        }
+
+        $customFields = json_decode($customer["custom_field"], true);
+
+        if (! is_array($customFields)) {
+            $customFields = [];
+        }
 
         if (! empty($customFields["account"][$taxIdCustomFieldId])) {
             return $customFields["account"][$taxIdCustomFieldId];
@@ -175,7 +194,7 @@ class ControllerExtensionPaymentWoovi extends Controller
         $orderStatusId = $this->config->get("payment_woovi_order_status_when_waiting_id");
 
         $this->load->model("checkout/order");
-        $this->model_checkout_order->addHistory(
+        $this->model_checkout_order->addOrderHistory(
             $this->session->data["order_id"],
             intval($orderStatusId)
         );
@@ -186,7 +205,7 @@ class ControllerExtensionPaymentWoovi extends Controller
      */
     private function getOrderValueInCents(): int
     {
-        return $this->model_extension_woovi_payment_woovi_order->getTotalValueInCents($this->session->data["order_id"]);
+        return $this->model_extension_payment_woovi_order->getTotalValueInCents($this->session->data["order_id"]);
     }
 
     /**
@@ -197,7 +216,7 @@ class ControllerExtensionPaymentWoovi extends Controller
      */
     private function createWooviCharge(string $correlationID, int $orderValueInCents, array $customerData): ?array
     {
-        $this->load->helper("extension/woovi/library"); // Setup API client & logger.
+        $this->load->helper("woovi/library"); // Setup API client & logger.
 
         $chargeData = [
             "correlationID" => $correlationID,
@@ -208,7 +227,7 @@ class ControllerExtensionPaymentWoovi extends Controller
         try {
             $createChargeResult = $this->woovi_api_client->charges()->create($chargeData);
         } catch (ApiErrorException|ClientExceptionInterface $e) {
-            $this->load->language("extension/woovi/payment/woovi");
+            $this->load->language("extension/payment/woovi");
             $this->woovi_logger->error($e, self::LOG_SCOPE);
         }
 
@@ -240,7 +259,7 @@ class ControllerExtensionPaymentWoovi extends Controller
      */
     private function relateOrderWithWooviCharge(int $opencartOrderId, array $createChargeResult): void
     {
-        $this->model_extension_woovi_payment_woovi_order->relateOrderWithCharge(
+        $this->model_extension_payment_woovi_order->relateOrderWithCharge(
             $opencartOrderId,
             $createChargeResult["correlationID"],
             $createChargeResult["charge"]
@@ -261,12 +280,18 @@ class ControllerExtensionPaymentWoovi extends Controller
      * 
      * @return CustomerData
      */
-    private function getCustomerData(): array
+    private function getCustomerData(): ?array
     {
         $phone = $this->normalizePhone($this->customer->getTelephone());
         $taxID = $this->getTaxID();
 
-        $customer = $this->session->data["customer"];
+        $customerId = $this->session->data["customer_id"];
+
+        if (empty($customerId)) {
+            return null;
+        }
+
+        $customer = $this->model_account_customer->getCustomer($customerId);
 
         $customerData = [
             "name" => $customer["firstname"] . " " . $customer["lastname"],

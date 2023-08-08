@@ -2,9 +2,9 @@
 
 namespace Woovi\Opencart;
 
-use Opencart\System\Engine\Registry;
-use Opencart\System\Engine\Loader;
-use Opencart\System\Engine\Config;
+use Registry;
+use Loader;
+use Config;
 use OpenPix\PhpSdk\Client;
 
 /**
@@ -32,7 +32,7 @@ class Extension
      */
     public function load(): void
     {
-        $this->getLoader()->config("extension/woovi/woovi");
+        $this->getLoader()->config("woovi");
     }
 
     /**

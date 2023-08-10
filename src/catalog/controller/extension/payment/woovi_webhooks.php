@@ -144,7 +144,7 @@ class ControllerExtensionPaymentWooviWebhooks extends Controller
         $comment = $this->language->get("The payment was confirmed by Woovi.");
         $notifyCustomer = !! $this->config->get("payment_woovi_notify_customer");
 
-        $this->model_checkout_order->addHistory(
+        $this->model_checkout_order->addOrderHistory(
             intval($order["order_id"]),
             intval($newStatusId),
             $comment,

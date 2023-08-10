@@ -27,7 +27,7 @@ class WebhooksCommands extends BaseTasks
         $this->makeOpencartRunner();
 
         $this->opencartRunner->load->model("extension/payment/woovi_order");
-        $wooviOrder = $this->opencartRunner->model_extension_woovi_payment_woovi_order->getWooviOrderByOpencartOrderId($orderId);
+        $wooviOrder = $this->opencartRunner->model_extension_payment_woovi_order->getWooviOrderByOpencartOrderId($orderId);
 
         $this->emitWebhookEvent([
             "event" => WooviWebhooks::OPENPIX_CHARGE_COMPLETED_EVENT,

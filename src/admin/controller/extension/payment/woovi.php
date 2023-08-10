@@ -53,7 +53,7 @@ class ControllerExtensionPaymentWoovi extends Controller
         $wooviWebhookCallbackUrl = str_replace(
             HTTP_SERVER,
             HTTP_CATALOG,
-            $this->url->link("extension/payment/woovi/woovi_webhooks|callback")
+            $this->url->link("extension/payment/woovi_webhooks/callback")
         );
 
         $this->response->setOutput($this->load->view("extension/payment/woovi", [
@@ -94,7 +94,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Get an config key from request or config table.
-     * 
+     *
      * @return mixed
      */
     private function getConfig(string $key)
@@ -106,7 +106,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Save settings from HTTP POSTed payload.
-     * 
+     *
      * @return array{success?: string, warning?: string}
      */
     private function save(): array

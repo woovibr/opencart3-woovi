@@ -4,7 +4,7 @@ namespace Scripts\Robo\Plugin\Commands;
 
 use Mockery;
 use Scripts\Robo\BaseTasks;
-use Opencart\Catalog\Controller\Extension\Woovi\Payment\WooviWebhooks;
+use ControllerExtensionPaymentWooviWebhooks as WooviWebhooks;
 use Scripts\OpencartRunner;
 use MockPhpStream;
 use OpenPix\PhpSdk\Client;
@@ -26,7 +26,7 @@ class WebhooksCommands extends BaseTasks
     {
         $this->makeOpencartRunner();
 
-        $this->opencartRunner->load->model("extension/woovi/payment/woovi_order");
+        $this->opencartRunner->load->model("extension/payment/woovi_order");
         $wooviOrder = $this->opencartRunner->model_extension_woovi_payment_woovi_order->getWooviOrderByOpencartOrderId($orderId);
 
         $this->emitWebhookEvent([
@@ -62,11 +62,11 @@ class WebhooksCommands extends BaseTasks
         MockPhpStream::register();
         file_put_contents("php://input", json_encode($payload));
 
-        $response = $runner->sendRequest("POST", "extension/woovi/payment/woovi_webhooks|callback");
+        $response = $runner->sendRequest("POST", "extension/payment/woovi_webhooks/callback");
 
         MockPhpStream::restore();
 
-        echo "Response from webhook handler:\n";        
+        echo "Response from webhook handler:\n";
 
         var_dump($response->getOutput());
     }
@@ -78,10 +78,14 @@ class WebhooksCommands extends BaseTasks
     {
         if (! is_null($this->opencartRunner)) return $this->opencartRunner;
 
-        return $this->opencartRunner = (new OpencartRunner(
+        $this->opencartRunner = (new OpencartRunner(
             getenv("OPENCART_PATH"),
             getenv("APP_PORT")
         ))->boot();
+
+        include_once(DIR_APPLICATION . "controller/extension/payment/woovi_webhooks.php");	
+
+        return $this->opencartRunner;
     }
 
     /**

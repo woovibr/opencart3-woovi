@@ -5,7 +5,7 @@
  * 
  * @property \Opencart\System\Library\DB $db
  */
-class ModelExtensionWooviWebhooks extends Model
+class ModelExtensionPaymentWooviWebhooks extends Model
 {
     /**
      * Configure new App ID.

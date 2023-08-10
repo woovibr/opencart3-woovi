@@ -2,7 +2,7 @@
 
 /**
  * Invoked by the Woovi API.
- * 
+ *
  * @property \Opencart\System\Engine\Loader $load
  * @property \Opencart\System\Library\Request $request
  * @property \Opencart\System\Library\Response $response
@@ -13,7 +13,7 @@
  * @property \Opencart\Catalog\Model\Extension\Woovi\Payment\WooviWebhooks $model_extension_woovi_payment_woovi_webhooks
  * @property \OpenPix\PhpSdk\Client $woovi_api_client
  * @property \Woovi\Opencart\Logger $woovi_logger
- * 
+ *
  * @phpstan-type TestWebhookPayload array{event: self::TEST_WEBHOOK_EVENT}
  * @phpstan-type OpencartConfigurePayload array{event: self::OPENCART_CONFIGURE_EVENT, appID: string}
  * @phpstan-type ChargeCompletedPayload array{event: self::OPENPIX_CHARGE_COMPLETED_EVENT, charge: array{correlationID: string}}
@@ -24,7 +24,7 @@ class ControllerExtensionPaymentWooviWebhooks extends Controller
      * Called when testing webhooks.
      */
     const TEST_WEBHOOK_EVENT = "teste_webhook";
-        
+
     /**
      * Called when client configure plugin on Woovi platform.
      */
@@ -40,10 +40,10 @@ class ControllerExtensionPaymentWooviWebhooks extends Controller
      */
     private function load(): void
     {
-        $this->load->helper("extension/woovi/library"); // Setup API client.
-        $this->load->language("extension/woovi/payment/woovi");
-        $this->load->model("extension/woovi/payment/woovi_order");
-        $this->load->model("extension/woovi/payment/woovi_webhooks");
+        $this->load->helper("woovi/library"); // Setup API client.
+        $this->load->language("extension/payment/woovi");
+        $this->load->model("extension/payment/woovi_order");
+        $this->load->model("extension/payment/woovi_webhooks");
         $this->load->model("checkout/order");
     }
 
@@ -64,7 +64,7 @@ class ControllerExtensionPaymentWooviWebhooks extends Controller
 
     /**
      * Dispatch webhook to appropriate handler.
-     * 
+     *
      * @param array<array-key, mixed> $payload
      */
     private function handleWebhookEvents(array $payload): void
@@ -98,13 +98,13 @@ class ControllerExtensionPaymentWooviWebhooks extends Controller
 
     /**
      * Executed when an user configure plugin on Woovi platform.
-     * 
+     *
      * @param OpencartConfigurePayload $payload
      */
     private function handleOpencartConfigureWebhook(array $payload): void
     {
         $appId = $payload["appID"];
-        $this->model_extension_woovi_payment_woovi_webhooks->configureAppId($appId);
+        $this->model_extension_payment_woovi_webhooks->configureAppId($appId);
 
         $this->woovi_logger->debug("Webhook configured.", "catalog/webhooks");
         $this->emitJson(["message" => "Success."]);
@@ -112,14 +112,14 @@ class ControllerExtensionPaymentWooviWebhooks extends Controller
 
     /**
      * Executed when an charge is completed.
-     * 
+     *
      * @param ChargeCompletedPayload $payload
      */
     private function handleChargeCompletedWebhook(array $payload): void
     {
         $correlationID = $payload["charge"]["correlationID"];
 
-        $order = $this->model_extension_woovi_payment_woovi_order->getOpencartOrderByCorrelationID($correlationID);
+        $order = $this->model_extension_payment_woovi_order->getOpencartOrderByCorrelationID($correlationID);
 
         if (empty($order)) {
             $this->woovi_logger->notice("Cound not find OpenCart order with correlation ID `" . $correlationID . "`", "catalog/webhooks");
@@ -140,7 +140,7 @@ class ControllerExtensionPaymentWooviWebhooks extends Controller
 
             return;
         }
-        
+
         $comment = $this->language->get("The payment was confirmed by Woovi.");
         $notifyCustomer = !! $this->config->get("payment_woovi_notify_customer");
 
@@ -156,13 +156,13 @@ class ControllerExtensionPaymentWooviWebhooks extends Controller
 
     /**
      * Validates the webhook request and returns validated data or `null` if an error occurs.
-     * 
+     *
      * @return ?array<array-key, mixed>
      */
     private function getValidatedWebhookPayload(): ?array
-    {        
+    {
         $rawPayload = strval(file_get_contents("php://input"));
-        
+
         /** @var array<array-key, mixed> $rawHeaders */
         $rawHeaders = getallheaders();
 
@@ -228,7 +228,7 @@ class ControllerExtensionPaymentWooviWebhooks extends Controller
 
     /**
      * Checks if it is an valid webhook test payload.
-     * 
+     *
      * @param array<array-key, mixed> $payload
      * @phpstan-assert-if-true TestWebhookPayload $payload
      */
@@ -240,7 +240,7 @@ class ControllerExtensionPaymentWooviWebhooks extends Controller
 
     /**
      * Checks if it is an valid webhook payload for "opencart-configure" event.
-     * 
+     *
      * @param array<array-key, mixed> $payload
      * @phpstan-assert-if-true OpencartConfigurePayload $payload
      */
@@ -254,7 +254,7 @@ class ControllerExtensionPaymentWooviWebhooks extends Controller
 
     /**
      * Checks if it is an valid webhook payload for charge completed event.
-     * 
+     *
      * @param array<array-key, mixed> $payload
      * @phpstan-assert-if-true ChargeCompletedPayload $payload
      */
@@ -268,7 +268,7 @@ class ControllerExtensionPaymentWooviWebhooks extends Controller
 
     /**
      * Checks if the payload is of an detached pix.
-     * 
+     *
      * @param array<array-key, mixed> $payload
      */
     private function isPixDetachedPayload(array $payload): bool

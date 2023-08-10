@@ -2,8 +2,8 @@
 
 namespace Scripts;
 
-use Opencart\System\Engine\Registry;
-use Opencart\System\Library\Response;
+use Registry;
+use Response;
 
 /**
  * Runs an OpenCart endpoint.
@@ -27,10 +27,23 @@ class OpencartRunner
     public Registry $registry;
 
     /**
+     * The path of OpenCart installation.
+     */
+    private string $opencartPath;
+
+    /**
+     * The port of application.
+     */
+    private string $appPort;
+
+    /**
      * Create a new `OpencartRunner` instance.
      */
-    public function __construct(private string $opencartPath, private string $appPort)
-    {}
+    public function __construct(string $opencartPath, string $appPort)
+    {
+        $this->opencartPath = $opencartPath;
+        $this->appPort = $appPort;
+    }
 
     /**
      * Boot the OpenCart.
@@ -39,11 +52,7 @@ class OpencartRunner
     {
         if ($this->booted) return $this;
 
-        $frontControllerDirectory = $area === "admin"
-            ? "administration"
-            : ($area === "catalog"
-                ? ""
-                : $area);
+        $frontControllerDirectory = $area == "catalog" ? "" : $area;
 
         chdir($this->opencartPath . "/" . $frontControllerDirectory);
 
@@ -53,7 +62,10 @@ class OpencartRunner
         $_SERVER["REMOTE_ADDR"] = "127.0.0.1";
 
         ob_start();
-        require_once("index.php");
+        $application_config = $area;
+        require_once("config.php");
+        require_once(DIR_SYSTEM . "startup.php");
+        require(DIR_SYSTEM . "framework.php");
         ob_get_clean();
 
         /** @var Registry $registry */
@@ -66,8 +78,10 @@ class OpencartRunner
 
     /**
      * Send an request to an endpoint.
+     * 
+     * @param mixed $data
      */
-    public function sendRequest(string $method, string $uri, mixed $data = []): Response
+    public function sendRequest(string $method, string $uri, $data = []): Response
     {
         $lowercaseMethod = strtolower($method);
 
@@ -84,8 +98,10 @@ class OpencartRunner
 
     /**
      * Retrieve an service from registry.
+     * 
+     * @return object|null
      */
-    public function __get(string $id): object|null
+    public function __get(string $id)
     {
         return $this->registry->get($id);
     }

@@ -1,6 +1,6 @@
 <form id="form-woovi">
     {% if show_tax_id_input %}
-        <div class="mb-3 required">
+        <div class="form-group">
             <label
                 for="input-tax-id"
                 class="col-form-label"
@@ -51,23 +51,27 @@
             },
 
             success: function (json) {
-                $(".alert-dismissible").remove();
+                $(".alert-dismissible, .text-danger").remove();
+                $(".form-group").removeClass("has-error");
+
                 $("#form-woovi").find(".is-invalid").removeClass("is-invalid");
                 $("#form-woovi").find(".invalid-feedback").removeClass("d-block");
 
                 if (json["error"]) {
                     if (json["error"]["warning"]) {
-                        $("#alert").prepend('\
+                        $("#form-woovi").prepend(
+                            '\
                             <div class="alert alert-danger alert-dismissible">\
-                                <i class="fa-solid fa-circle-exclamation"></i>'
+                                <i class="fa fa-circle-exclamation"></i>'
                                 + json["error"]["warning"]
                                 + ' <button\
                                         type="button"\
-                                        class="btn-close"\
+                                        class="close"\
                                         data-bs-dismiss="alert"\
                                     ></button>\
                             </div>\
-                        ');
+                            '
+                        );
                     }
 
                     for (var key in json["error"]) {

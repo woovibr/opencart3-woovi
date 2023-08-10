@@ -15,7 +15,6 @@
                 id="input-tax-id"
                 class="form-control"
             />
-            <div id="error-tax-id" class="invalid-feedback"></div>
         </div>
     {% endif %}
 
@@ -54,9 +53,6 @@
                 $(".alert-dismissible, .text-danger").remove();
                 $(".form-group").removeClass("has-error");
 
-                $("#form-woovi").find(".is-invalid").removeClass("is-invalid");
-                $("#form-woovi").find(".invalid-feedback").removeClass("d-block");
-
                 if (json["error"]) {
                     if (json["error"]["warning"]) {
                         $("#form-woovi").prepend(
@@ -84,6 +80,23 @@
                             .html(json["error"][key])
                             .addClass("d-block");
                     }
+
+                    for (var key in json["error"]) {
+                        var element = $("#input-" + key.replace("_", "-"));
+
+                        if ($(element).parent().hasClass("input-group")) {
+                            element = $(element).parent();
+                        }
+
+                        $(element).after(
+                            '<div class="text-danger">'
+                                + json["error"][key]
+                            + '</div>'
+                        );
+                    }
+
+                    $(".text-danger").parent()
+                        .addClass("has-error");
                 }
 
                 if (json["redirect"]) {

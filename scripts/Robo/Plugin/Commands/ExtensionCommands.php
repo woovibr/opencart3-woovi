@@ -22,23 +22,23 @@ class ExtensionCommands extends BaseTasks
         $opencartPath = getenv("OPENCART_PATH");
 
         $finder = (new Finder())
-            ->in([$baseDirectory . "/admin", $baseDirectory . "/catalog", $baseDirectory . "/system"]);
+            ->in([
+                $baseDirectory . "/admin",
+                $baseDirectory . "/catalog",
+                $baseDirectory . "/system"
+            ]);
 
         $entries = iterator_to_array($finder);
 
-        $filesystemStack = $this->taskFilesystemStack();
+        foreach ($entries as $targetPath) {
+            $linkPath = str_replace($baseDirectory, $opencartPath, $targetPath);
 
-        foreach ($entries as $fromPath) {
-            $toPath = str_replace($baseDirectory, $opencartPath, $fromPath);
-
-            if (file_exists($toPath)) {
+            if (file_exists($linkPath)) {
                 continue;
             }
 
-            $filesystemStack->symlink($fromPath, $toPath);
+            symlink($targetPath, $linkPath);
         }
-
-        $filesystemStack->run();
     }
 
     /**

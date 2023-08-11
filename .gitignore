@@ -4,5 +4,6 @@ vendor-bin
 opencart
 opencart-storage
 phpstan.neon
-stubs
+stubs/*
+!stubs/*.overrides.php
 src/system/config/woovi.php

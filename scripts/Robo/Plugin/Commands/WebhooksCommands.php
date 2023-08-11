@@ -4,7 +4,7 @@ namespace Scripts\Robo\Plugin\Commands;
 
 use Mockery;
 use Scripts\Robo\BaseTasks;
-use ControllerExtensionPaymentWooviWebhooks as WooviWebhooks;
+use ControllerExtensionWooviPaymentWooviWebhooks as WooviWebhooks;
 use Scripts\OpencartRunner;
 use MockPhpStream;
 use OpenPix\PhpSdk\Client;
@@ -14,6 +14,11 @@ use OpenPix\PhpSdk\Client;
  */
 class WebhooksCommands extends BaseTasks
 {
+    /**
+     * URI of webhook endpoint.
+     */
+    const WEBHOOK_ENDPOINT_URI = "extension/woovi/payment/woovi_webhooks";
+
     /**
      * The opencart runner used by commands.
      */
@@ -62,7 +67,7 @@ class WebhooksCommands extends BaseTasks
         MockPhpStream::register();
         file_put_contents("php://input", json_encode($payload));
 
-        $response = $runner->sendRequest("POST", "extension/payment/woovi_webhooks/callback");
+        $response = $runner->sendRequest("POST", self::WEBHOOK_ENDPOINT_URI);
 
         MockPhpStream::restore();
 
@@ -83,7 +88,7 @@ class WebhooksCommands extends BaseTasks
             getenv("APP_PORT")
         ))->boot();
 
-        include_once(DIR_APPLICATION . "controller/extension/payment/woovi_webhooks.php");	
+        include_once(DIR_APPLICATION . "controller/extension/woovi/payment/woovi_webhooks.php");	
 
         return $this->opencartRunner;
     }

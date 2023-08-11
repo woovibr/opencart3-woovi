@@ -5,14 +5,14 @@
  *
  * This adds the events and creates a table of relationships between orders and charges, for example.
  * 
- * @property \Opencart\System\Library\DB $db
- * @property \Opencart\System\Engine\Loader $load
- * @property \Opencart\Admin\Model\Customer\CustomField $model_customer_custom_field
- * @property \Opencart\Admin\Model\Setting\Setting $model_setting_setting
- * @property \Opencart\Admin\Model\Setting\Event $model_setting_event
- * @property \Opencart\Admin\Model\Localisation\Language $model_localisation_language
- * @property \Opencart\Admin\Model\Setting\Extension $model_setting_extension
- * @property \Opencart\System\Engine\Config $config
+ * @property DB $db
+ * @property Loader $load
+ * @property ModelCustomerCustomField $model_customer_custom_field
+ * @property ModelSettingSetting $model_setting_setting
+ * @property ModelSettingEvent $model_setting_event
+ * @property ModelLocalisationLanguage $model_localisation_language
+ * @property ModelSettingExtension $model_setting_extension
+ * @property Config $config
  */
 class ModelExtensionPaymentWoovi extends Model
 {

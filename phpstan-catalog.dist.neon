@@ -1,0 +1,11 @@
+parameters:
+    level: max
+    paths:
+        - src/catalog
+        - src/system
+    excludePaths:
+        - src/system/library/woovi/vendor/*
+    scanFiles:
+        - stubs/catalog.php
+        - stubs/system.overrides.php
+        - stubs/system.php

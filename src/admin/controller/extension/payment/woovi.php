@@ -3,19 +3,19 @@
 /**
  * Settings page for Woovi extension.
  *
- * @property \Opencart\System\Engine\Loader $load
- * @property \Opencart\System\Library\Document $document
- * @property \Opencart\System\Library\Session $session
- * @property \Opencart\System\Library\Url $url
- * @property \Opencart\System\Library\Request $request
- * @property \Opencart\System\Library\Response $response
- * @property \Opencart\System\Library\Language $language
- * @property \Opencart\System\Engine\Config $config
- * @property \Opencart\System\Library\Cart\User $user
- * @property \Opencart\Admin\Model\Customer\CustomField $model_customer_custom_field
- * @property \Opencart\Admin\Model\Localisation\OrderStatus $model_localisation_order_status
- * @property \Opencart\Admin\Model\Setting\Setting $model_setting_setting
- * @property \Opencart\Admin\Model\Extension\Woovi\Payment\Woovi $model_extension_woovi_payment_woovi
+ * @property Loader $load
+ * @property Document $document
+ * @property Session $session
+ * @property Url $url
+ * @property Request $request
+ * @property Response $response
+ * @property Language $language
+ * @property Config $config
+ * @property Cart\User $user
+ * @property ModelCustomerCustomField $model_customer_custom_field
+ * @property ModelLocalisationOrderStatus $model_localisation_order_status
+ * @property ModelSettingSetting $model_setting_setting
+ * @property ModelExtensionPaymentWoovi $model_extension_payment_woovi
  */
 class ControllerExtensionPaymentWoovi extends Controller
 {

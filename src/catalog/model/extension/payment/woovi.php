@@ -3,8 +3,8 @@
 /**
  * Add Pix payment method to OpenCart.
  * 
- * @property \Opencart\System\Engine\Loader $load
- * @property \Opencart\System\Library\Language $language
+ * @property Loader $load
+ * @property Language $language
  */
 class ModelExtensionPaymentWoovi extends Model
 {

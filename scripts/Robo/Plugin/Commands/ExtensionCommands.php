@@ -210,12 +210,24 @@ class ExtensionCommands extends BaseTasks
         $collection = $this->collectionBuilder();
 
         // You need delete the stub file if you need regenerate stubs.
-        if (! file_exists(__DIR__ . "/../../../../stubs/opencart.php")) {
-            $collection->taskExec("robo stubs:generate");
+        $stubsDir = __DIR__ . "/../../../../stubs/";
+
+        if (! file_exists($stubsDir . "/admin.php")
+            || ! file_exists($stubsDir . "/catalog.php")
+            || ! file_exists($stubsDir . "/system.php")) {
+            $this->_exec("robo stubs:generate");
         }
 
-        $collection->taskExec("phpstan analyse");
-        $collection->run();
+        $catalogConfigPath = file_exists("phpstan-catalog.neon")
+            ? "phpstan-catalog.neon"
+            : "phpstan-catalog.dist.neon";
+
+        $adminConfigPath = file_exists("phpstan-admin.neon")
+            ? "phpstan-admin.neon"
+            : "phpstan-admin.dist.neon";
+
+        $this->_exec("phpstan analyse -c " . $catalogConfigPath);
+        $this->_exec("phpstan analyse -c " . $adminConfigPath);
     }
 
     /**

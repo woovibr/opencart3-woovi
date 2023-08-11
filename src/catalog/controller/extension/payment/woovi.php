@@ -6,16 +6,17 @@ use Psr\Http\Client\ClientExceptionInterface;
 /**
  * Add endpoints for pix payment method.
  *
- * @property \Opencart\System\Engine\Loader $load
- * @property \Opencart\System\Library\Session $session
- * @property \Opencart\System\Library\Url $url
- * @property \Opencart\System\Library\Request $request
- * @property \Opencart\System\Library\Response $response
- * @property \Opencart\System\Library\Language $language
- * @property \Opencart\System\Engine\Config $config
- * @property \Opencart\System\Library\Cart\Customer $customer
- * @property \Opencart\Catalog\Model\Checkout\Order $model_checkout_order
- * @property \Opencart\Catalog\Model\Extension\Woovi\Payment\WooviOrder $model_extension_woovi_payment_woovi_order
+ * @property Loader $load
+ * @property Session $session
+ * @property Url $url
+ * @property Request $request
+ * @property Response $response
+ * @property Language $language
+ * @property Config $config
+ * @property Cart\Customer $customer
+ * @property ModelCheckoutOrder $model_checkout_order
+ * @property ModelAccountCustomer $model_account_customer
+ * @property ModelExtensionPaymentWooviOrder $model_extension_payment_woovi_order
  * @property \OpenPix\PhpSdk\Client $woovi_api_client
  * @property \Woovi\Opencart\Logger $woovi_logger
  * 
@@ -68,6 +69,11 @@ class ControllerExtensionPaymentWoovi extends Controller
         $correlationID = $this->generateCorrelationID();
         $orderValueInCents = $this->getOrderValueInCents();
         $customerData = $this->getCustomerData();
+
+        if (empty($customerData)) {
+            $this->emitError($this->language->get("Missing customer data on checkout."));
+            return;
+        }
 
         $createChargeResult = $this->createWooviCharge($correlationID, $orderValueInCents, $customerData);
 

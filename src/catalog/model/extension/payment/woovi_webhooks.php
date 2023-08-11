@@ -3,7 +3,7 @@
 /**
  * Called by webhook configuration.
  * 
- * @property \Opencart\System\Library\DB $db
+ * @property DB $db
  */
 class ModelExtensionPaymentWooviWebhooks extends Model
 {

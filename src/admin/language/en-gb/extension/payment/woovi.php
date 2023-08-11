@@ -1,6 +1,6 @@
 <?php
 
-$_["heading_title"] = "Pix Payments";
+$_["heading_title"] = "Woovi Pix";
 
 $_["Home"] = "Home";
 $_["Extensions"] = "Extensions";

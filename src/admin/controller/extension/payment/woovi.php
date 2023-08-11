@@ -53,7 +53,7 @@ class ControllerExtensionPaymentWoovi extends Controller
         $wooviWebhookCallbackUrl = str_replace(
             HTTP_SERVER,
             HTTP_CATALOG,
-            $this->url->link("extension/payment/woovi_webhooks/callback")
+            $this->url->link("extension/woovi/payment/woovi_webhooks")
         );
 
         $this->response->setOutput($this->load->view("extension/payment/woovi", [

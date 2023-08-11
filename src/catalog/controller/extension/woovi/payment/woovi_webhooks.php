@@ -18,7 +18,7 @@
  * @phpstan-type OpencartConfigurePayload array{event: self::OPENCART_CONFIGURE_EVENT, appID: string}
  * @phpstan-type ChargeCompletedPayload array{event: self::OPENPIX_CHARGE_COMPLETED_EVENT, charge: array{correlationID: string}}
  */
-class ControllerExtensionPaymentWooviWebhooks extends Controller
+class ControllerExtensionWooviPaymentWooviWebhooks extends Controller
 {
     /**
      * Called when testing webhooks.
@@ -45,6 +45,14 @@ class ControllerExtensionPaymentWooviWebhooks extends Controller
         $this->load->model("extension/payment/woovi_order");
         $this->load->model("extension/payment/woovi_webhooks");
         $this->load->model("checkout/order");
+    }
+
+    /**
+     * Just an alias to the `callback` method.
+     */
+    public function index(): void
+    {
+        $this->callback();
     }
 
     /**

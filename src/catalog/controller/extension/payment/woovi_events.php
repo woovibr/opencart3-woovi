@@ -3,11 +3,11 @@
 /**
  * OpenCart event handlers.
  * 
- * @property \Opencart\System\Engine\Loader $load
- * @property \Opencart\System\Library\Request $request
- * @property \Opencart\System\Library\Session $session
- * @property \Opencart\System\Engine\Config $config
- * @property \Opencart\Catalog\Model\Extension\Woovi\Payment\WooviOrder $model_extension_woovi_payment_woovi_order
+ * @property Loader $load
+ * @property Request $request
+ * @property Session $session
+ * @property Config $config
+ * @property ModelExtensionPaymentWooviOrder $model_extension_payment_woovi_order
  * 
  * @phpstan-import-type WooviEnvironment from \Woovi\Opencart\Extension
  */

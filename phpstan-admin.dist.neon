@@ -1,0 +1,11 @@
+parameters:
+    level: max
+    paths:
+        - src/admin
+        - src/system
+    excludePaths:
+        - src/system/library/woovi/vendor/*
+    scanFiles:
+        - stubs/admin.php
+        - stubs/system.overrides.php
+        - stubs/system.php

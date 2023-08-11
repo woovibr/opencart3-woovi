@@ -40,8 +40,7 @@ class Extension
      */
     public function registerDependencies(): void
     {
-        $this->registry->set("woovi_extension", $this);
-        $this->registerPhpSdkClient();       
+        $this->registerPhpSdkClient();
         $this->registerLogger();
     }
 

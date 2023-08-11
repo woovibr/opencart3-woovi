@@ -4,11 +4,11 @@
  * This model relates OpenCart orders with charges on Woovi so we can
  * know which was the order for a specific charge, for example.
  * 
- * @property \Opencart\Catalog\Model\Checkout\Order $model_checkout_order
- * @property \Opencart\System\Library\DB $db
- * @property \Opencart\System\Engine\Loader $load
+ * @property ModelCheckoutOrder $model_checkout_order
+ * @property DB $db
+ * @property Loader $load
  * 
- * @phpstan-import-type Charge from \Opencart\Catalog\Controller\Extension\Woovi\Payment\Woovi
+ * @phpstan-import-type Charge from ControllerExtensionPaymentWoovi
  * @phpstan-type OpencartOrder array{order_id: string, order_status_id: string}
  * @phpstan-type WooviOrderData array{opencart_order_id: int, woovi_correlation_id: string, woovi_payment_link_url: string, woovi_qrcode_image_url: string, woovi_brcode: string, woovi_pixkey: string}
  */

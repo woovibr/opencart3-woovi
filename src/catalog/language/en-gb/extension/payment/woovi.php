@@ -14,3 +14,5 @@ $_["CPF/CNPJ invalid!"] = "CPF/CNPJ invalid!";
 $_["CPF/CNPJ"] = "CPF/CNPJ";
 
 $_["An error occurred while creating the Pix charge."] = "An error occurred while creating the Pix charge.";
+
+$_["Missing customer data on checkout."] = "Missing customer data on checkout.";

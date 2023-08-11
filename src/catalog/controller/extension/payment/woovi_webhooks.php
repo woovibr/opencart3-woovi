@@ -3,14 +3,14 @@
 /**
  * Invoked by the Woovi API.
  *
- * @property \Opencart\System\Engine\Loader $load
- * @property \Opencart\System\Library\Request $request
- * @property \Opencart\System\Library\Response $response
- * @property \Opencart\System\Library\Language $language
- * @property \Opencart\System\Engine\Config $config
- * @property \Opencart\Catalog\Model\Checkout\Order $model_checkout_order
- * @property \Opencart\Catalog\Model\Extension\Woovi\Payment\WooviOrder $model_extension_woovi_payment_woovi_order
- * @property \Opencart\Catalog\Model\Extension\Woovi\Payment\WooviWebhooks $model_extension_woovi_payment_woovi_webhooks
+ * @property Loader $load
+ * @property Request $request
+ * @property Response $response
+ * @property Language $language
+ * @property Config $config
+ * @property ModelCheckoutOrder $model_checkout_order
+ * @property ModelExtensionPaymentWooviOrder $model_extension_payment_woovi_order
+ * @property ModelExtensionPaymentWooviWebhooks $model_extension_payment_woovi_webhooks
  * @property \OpenPix\PhpSdk\Client $woovi_api_client
  * @property \Woovi\Opencart\Logger $woovi_logger
  *

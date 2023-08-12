@@ -22,7 +22,7 @@ abstract class BaseTasks extends Tasks
     {
         $this->stopOnFail();
 
-        $this->dotenv = Dotenv::createImmutable(__DIR__ . "/../..");
+        $this->dotenv = Dotenv::createMutable(__DIR__ . "/../..");
         $this->dotenv->load();
     }
 }

@@ -80,6 +80,7 @@ class ControllerExtensionPaymentWoovi extends Controller
             "payment_woovi_order_status_when_paid_id" => $this->getConfig("payment_woovi_order_status_when_paid_id"),
             "payment_woovi_notify_customer" => $this->getConfig("payment_woovi_notify_customer"),
             "payment_woovi_tax_id_custom_field_id" => $this->getConfig("payment_woovi_tax_id_custom_field_id"),
+            "payment_woovi_pix_payment_method_title" => $this->getConfig("payment_woovi_pix_payment_method_title"),
 
             "order_statuses" => $orderStatuses,
             "custom_fields" => $customFields,
@@ -128,6 +129,7 @@ class ControllerExtensionPaymentWoovi extends Controller
             "payment_woovi_order_status_when_paid_id",
             "payment_woovi_notify_customer",
             "payment_woovi_tax_id_custom_field_id",
+            "payment_woovi_pix_payment_method_title",
         ];
 
         $updatedSettings = array_filter(

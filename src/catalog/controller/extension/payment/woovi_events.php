@@ -77,7 +77,7 @@ class ControllerExtensionPaymentWooviEvents extends Controller
         // Ignore if correlationID is not registered.
         if (! $wooviOrder) return;
 
-        $wooviOpencartOrderId = intval($wooviOrder["opencart_order_id"]);
+        $wooviOpencartOrderId = $wooviOrder["opencart_order_id"];
 
         // Prevents the plugin from rendering if the correlationID does not match
         // the lastest order.
@@ -106,7 +106,7 @@ class ControllerExtensionPaymentWooviEvents extends Controller
         $this->load();
 
         // Fetch correlationID using the opencart order id.
-        $wooviOrder = $this->model_extension_payment_woovi_order->getWooviOrderByOpencartOrderId(intval($data["order_id"]));
+        $wooviOrder = $this->model_extension_payment_woovi_order->getWooviOrderByOpencartOrderId($data["order_id"]);
 
         if (empty($wooviOrder)) return;
 

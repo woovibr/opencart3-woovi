@@ -134,7 +134,7 @@ class ControllerExtensionPaymentWoovi extends Controller
         }
 
         // Check if an order has already been registered with a pix charge.
-        $orderId = intval($this->session->data["order_id"]);
+        $orderId = $this->session->data["order_id"];
 
         $wooviOrder = $this->model_extension_payment_woovi_order->getWooviOrderByOpencartOrderId($orderId);
 
@@ -237,7 +237,7 @@ class ControllerExtensionPaymentWoovi extends Controller
      * 
      * @param CreateChargeResult $createChargeResult
      */
-    private function relateOrderWithWooviCharge(int $opencartOrderId, array $createChargeResult): void
+    private function relateOrderWithWooviCharge(string $opencartOrderId, array $createChargeResult): void
     {
         $this->model_extension_payment_woovi_order->relateOrderWithCharge(
             $opencartOrderId,

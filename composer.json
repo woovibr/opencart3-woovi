@@ -42,7 +42,13 @@
         "test": "robo test",
         "test:unit": "robo test:unit",
         "test:integration": "robo test:integration",
-        "post-install-cmd": "@robo extension:enable-environment production"
+        "post-install-cmd": [
+            "@robo extension:enable-environment production",
+            "@robo webhooks:set-public-key"
+        ],
+        "post-update-cmd": [
+            "@robo webhooks:set-public-key"
+        ]
     },
     "config": {
         "bin-dir": "vendor-bin",

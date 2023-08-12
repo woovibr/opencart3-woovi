@@ -8,6 +8,9 @@ use ControllerExtensionWooviPaymentWooviWebhooks as WooviWebhooks;
 use Scripts\OpencartRunner;
 use MockPhpStream;
 use OpenPix\PhpSdk\Client;
+use OpenPix\PhpSdk\Resources\Webhooks;
+use ReflectionClass;
+use Robo\Symfony\ConsoleIO;
 
 /**
  * Commands for managing webhooks.
@@ -53,6 +56,98 @@ class WebhooksCommands extends BaseTasks
             "event" => WooviWebhooks::OPENCART_CONFIGURE_EVENT,
             "appID" => $appID,
         ]);
+    }
+
+    /**
+     * Set webhook signature validation public key on `vendor`
+     * for development only.
+     */
+    public function webhooksSetPublicKey(string $publicKey = ""): void
+    {
+        if (empty($publicKey)) $publicKey = $_SERVER["WEBHOOKS_PUBLIC_KEY"] ?? "";
+        if (empty($publicKey)) return;
+
+        $classPath = $this->getWebhooksResourceClassPath();
+
+        $this->backupWebhooksResourceClass($classPath);
+
+        $this->taskReplaceInFile($classPath)
+            ->regex("/private const VALIDATION_PUBLIC_KEY_BASE64 = \".*\";/")
+            ->to("private const VALIDATION_PUBLIC_KEY_BASE64 = \"$publicKey\";")
+            ->run();
+    }
+
+    /**
+     * Reset signature validation on webhooks.
+     */
+    public function webhooksResetSignatureValidation(ConsoleIO $consoleIO): void
+    {
+        $classPath = $this->getWebhooksResourceClassPath();
+        $backupPath = $this->getWebhooksResourceBackupClassPath($classPath);
+
+        if (! file_exists($backupPath)) {
+            $consoleIO->warning("No backup file found at `$backupPath`.");
+            return;
+        }
+
+        $this->_remove($classPath);
+        $this->_rename($backupPath, $classPath);
+    }
+
+    /**
+     * Completely disable signature validation for webhooks.
+     */
+    public function webhooksDisableSignatureValidation(): void
+    {
+        $classPath = $this->getWebhooksResourceClassPath();
+
+        $this->backupWebhooksResourceClass($classPath);
+
+        $validationMethodPattern = '/    public function isWebhookValid\(string \$payload, string \$signature\): bool\s+\{\s+.*?\}/s';
+
+        $mockedValidationMethod = <<<'PHP'
+    public function isWebhookValid(string $payload, string $signature): bool
+    {
+        return true;
+    }
+PHP;
+
+        $this->taskReplaceInFile($classPath)
+            ->regex($validationMethodPattern)
+            ->to($mockedValidationMethod)
+            ->run();
+    }
+
+    /**
+     * Get `Webhooks` class path.
+     */
+    private function getWebhooksResourceClassPath(): string
+    {
+        $reflectionClass = new ReflectionClass(Webhooks::class);
+        
+        return $reflectionClass->getFileName();
+    }
+
+    /**
+     * Get `Webhooks` backup class path.
+     */
+    private function getWebhooksResourceBackupClassPath(string $currentClassPath): string
+    {
+        return $currentClassPath . ".bkp";
+    }
+
+    /**
+     * Create an backup for `Webhooks` class if needed.
+     */
+    private function backupWebhooksResourceClass(string $classPath): void
+    {
+        $backupPath = $this->getWebhooksResourceBackupClassPath($classPath);
+
+        if (! file_exists($backupPath)) {
+            $this->taskWriteToFile($backupPath)
+                ->textFromFile($classPath)
+                ->run();
+        }
     }
 
     /**

@@ -22,8 +22,7 @@ use Psr\Http\Client\ClientExceptionInterface;
  * 
  * @phpstan-type CreateChargeResult array{correlationID: string, charge: Charge}
  * @phpstan-type Charge array{paymentLinkUrl: string, qrCodeImage: string, brCode: string, pixKey: string, correlationID: string}
- * @phpstan-type CustomerData array{name: string, email: string, taxID?: string, phone?: string}
- * @phpstan-type OpencartCustomerData array{firstname: string, lastname: string, email: string, telephone: string, custom_field: array}
+ * @phpstan-type CustomerData array{name: string, email: string, taxID: string, phone?: string}
  */
 class ControllerExtensionPaymentWoovi extends Controller
 {
@@ -225,13 +224,15 @@ class ControllerExtensionPaymentWoovi extends Controller
      */
     private function getValidatedCustomerData(array $opencartCustomer): ?array
     {
-        $firstName = strval($opencartCustomer["firstname"] ?? "");
-        $email = strval($opencartCustomer["email"] ?? "");
+        $firstName = $opencartCustomer["firstname"] ?? "";
+        $email = $opencartCustomer["email"] ?? "";
 
         if (empty($opencartCustomer)
             || empty($firstName)
-            || empty($email)) {
-            $this->emitError($this->language->get("Missing customer data on checkout."));
+            || empty($email)
+            || ! is_string($firstName)
+            || ! is_string($email)) {
+            $this->emitError($this->language->get("Invalid customer data on checkout."));
             return null;
         }
 
@@ -259,8 +260,11 @@ class ControllerExtensionPaymentWoovi extends Controller
 
         $customerData["taxID"] = $taxID;
 
-        $phone = strval($opencartCustomer["telephone"] ?? "");
-        if (! empty($phone)) $customerData["phone"] = $this->normalizePhone($phone);
+        $phone = $this->normalizePhone($opencartCustomer["telephone"] ?? "");
+        
+        if (! empty($phone)) {
+            $customerData["phone"] = $phone;
+        }
 
         return $customerData;
     }
@@ -326,16 +330,22 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Normalize customer telephone.
+     * 
+     * @param mixed $phone
      */
-    private function normalizePhone(string $phone): ?string
+    private function normalizePhone($phone): string
     {
-        if (empty($phone)) return null;
+        if (! is_string($phone)) return "";
+        
+        $phone = preg_replace("/^0|\D+/", "", $phone);
+
+        if (! is_string($phone)) return "";
 
         if (strlen($phone) > 11) {
-            return preg_replace("/^0|\D+/", "", $phone);
+            return $phone;
         }
 
-        return "55" . preg_replace("/^0|\D+/", "", $phone);
+        return "55" . $phone;
     }
 
     /**

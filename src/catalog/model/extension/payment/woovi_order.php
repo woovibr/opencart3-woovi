@@ -19,7 +19,7 @@ class ModelExtensionPaymentWooviOrder extends Model
      * 
      * @param Charge $charge Woovi charge data.
      */
-    public function relateOrderWithCharge(int $opencartOrderId, string $wooviCorrelationID, array $charge): void
+    public function relateOrderWithCharge(string $opencartOrderId, string $wooviCorrelationID, array $charge): void
     {
         $this->db->query(
             "INSERT INTO `" . DB_PREFIX . "woovi_order` (
@@ -29,7 +29,7 @@ class ModelExtensionPaymentWooviOrder extends Model
                 `woovi_qrcode_image_url`,
                 `woovi_brcode`,
                 `woovi_pixkey`
-            ) VALUES ('" . $this->db->escape(strval($opencartOrderId)) . "',
+            ) VALUES ('" . $this->db->escape($opencartOrderId) . "',
                 '" . $this->db->escape($wooviCorrelationID) . "',
                 '" . $this->db->escape($charge["paymentLinkUrl"]) . "',
                 '" . $this->db->escape($charge["qrCodeImage"]) . "',
@@ -59,11 +59,11 @@ class ModelExtensionPaymentWooviOrder extends Model
      * 
      * @return WooviOrderData|array{}
      */
-    public function getWooviOrderByOpencartOrderId(int $opencartOrderId): array
+    public function getWooviOrderByOpencartOrderId(string $opencartOrderId): array
     {
         /** @var object{row: WooviOrderData|array{}} $result */
         $result = $this->db->query(
-            "SELECT * FROM `" . DB_PREFIX . "woovi_order` WHERE `opencart_order_id` = '" . $this->db->escape(strval($opencartOrderId)) . "'"
+            "SELECT * FROM `" . DB_PREFIX . "woovi_order` WHERE `opencart_order_id` = '" . $this->db->escape($opencartOrderId) . "'"
         );
         
         return $result->row;
@@ -93,11 +93,11 @@ class ModelExtensionPaymentWooviOrder extends Model
     /**
      * Get order total value in cents.
      */
-    public function getTotalValueInCents(int $opencartOrderId): int
+    public function getTotalValueInCents(string $opencartOrderId): int
     {
         /** @var object{row: array{total: int}} $result */
         $result = $this->db->query(
-            "SELECT FLOOR(`total` * 100) AS `total` FROM `" . DB_PREFIX . "order` WHERE `order_id` = '" . $this->db->escape(strval($opencartOrderId)) . "'"
+            "SELECT FLOOR(`total` * 100) AS `total` FROM `" . DB_PREFIX . "order` WHERE `order_id` = '" . $this->db->escape($opencartOrderId) . "'"
         );
 
         return $result->row["total"];

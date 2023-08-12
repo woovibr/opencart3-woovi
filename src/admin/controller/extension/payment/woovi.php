@@ -81,7 +81,7 @@ class ControllerExtensionPaymentWoovi extends Controller
             // Urls
             "woovi_register_account_url" => "https://app.woovi.com/register",
             "woovi_webhook_callback_url" => $wooviWebhookCallbackUrl,
-            "woovi_opencart_documentation_url" => "https://developers.woovi.com/docs/ecommerce/opencart/opencart-plugin#instale-o-plugin-woovi-na-sua-inst%C3%A2ncia-opencart-utilizando-one-click",
+            "woovi_opencart_documentation_url" => "https://developers.woovi.com/docs/ecommerce/opencart/opencart3-extension",
 
             // Routes
             "save_route" => $this->url->link("extension/payment/woovi", $tokenQuery),

@@ -23,6 +23,7 @@ use Psr\Http\Client\ClientExceptionInterface;
  * @phpstan-type CreateChargeResult array{correlationID: string, charge: Charge}
  * @phpstan-type Charge array{paymentLinkUrl: string, qrCodeImage: string, brCode: string, pixKey: string, correlationID: string}
  * @phpstan-type CustomerData array{name: string, email: string, taxID: string, phone?: string}
+ * @phpstan-type OpencartOrder array{order_id: string, store_name: string}
  */
 class ControllerExtensionPaymentWoovi extends Controller
 {
@@ -58,29 +59,25 @@ class ControllerExtensionPaymentWoovi extends Controller
     public function confirm(): void
     {
         $this->load->model("extension/payment/woovi_order");
+        $this->load->model("checkout/order");
         $this->load->language("extension/payment/woovi");
 
         $customerData = $this->getValidatedCustomerData($this->getOpencartCustomer());
+        $order = $this->getValidatedOpencartOrder();
 
         if (empty($customerData)
+            || empty($order)
             || ! $this->isConfirmationRequestValid()) return;
-
-        $orderId = $this->session->data["order_id"];
 
         $this->addOrderConfirmation();
 
         $correlationID = $this->generateCorrelationID();
-        $orderValueInCents = $this->getOrderValueInCents();
-
-        $createChargeResult = $this->createWooviCharge($correlationID, $orderValueInCents, $customerData);
+        $createChargeResult = $this->createWooviCharge($correlationID, $customerData, $order);
 
         // An error ocurred and it is logged.
         if (empty($createChargeResult)) return;
 
-        if (! empty($orderId)) {
-            $this->relateOrderWithWooviCharge($orderId, $createChargeResult);
-        }
-
+        $this->relateOrderWithWooviCharge($order["order_id"], $createChargeResult);
         $this->persistCorrelationIDToCheckoutSuccess($correlationID);
 
         $this->emitJson([
@@ -90,6 +87,33 @@ class ControllerExtensionPaymentWoovi extends Controller
                 true
             ),
         ]);
+    }
+
+    /**
+     * Get validated OpenCart order or null.
+     * 
+     * @return ?OpencartOrder
+     */
+    private function getValidatedOpencartOrder(): ?array
+    {
+        $orderId = $this->session->data["order_id"];
+
+        if (empty($orderId)) {
+            $this->emitError($this->language->get("Order ID is missing."));
+            return null;
+        }
+
+        $order = $this->model_checkout_order->getOrder($orderId);
+
+        if (empty($order["order_id"])
+            || ! is_string($order["order_id"])
+            || empty($order["store_name"])
+            || ! is_string($order["store_name"])) {
+            $this->emitError($this->language->get("Invalid order data."));
+            return null;
+        }
+
+        return $order;
     }
 
     /**
@@ -134,7 +158,6 @@ class ControllerExtensionPaymentWoovi extends Controller
         /** @var string $orderStatusId  */
         $orderStatusId = $this->config->get("payment_woovi_order_status_when_waiting_id");
 
-        $this->load->model("checkout/order");
         $this->model_checkout_order->addOrderHistory(
             $this->session->data["order_id"],
             intval($orderStatusId)
@@ -153,16 +176,33 @@ class ControllerExtensionPaymentWoovi extends Controller
      * Create an charge and send to Woovi API.
      * 
      * @param CustomerData $customerData
+     * @param OpencartOrder $opencartOrder
      * @return CreateChargeResult
      */
-    private function createWooviCharge(string $correlationID, int $orderValueInCents, array $customerData): ?array
+    private function createWooviCharge(string $correlationID, array $customerData, array $opencartOrder): ?array
     {
         $this->load->helper("woovi/library"); // Setup API client & logger.
+
+        $orderId = $opencartOrder["order_id"];
+        $additionalInfo = [
+            [
+                "key" => "Pedido",
+                "value" => $orderId,
+            ],
+        ];
+
+        $storeName = $opencartOrder["store_name"];
+        $comment = substr($storeName, 0, 100) . "#" . $orderId;
+        $commentTrimmed = substr($comment, 0, 140);
+
+        $orderValueInCents = $this->getOrderValueInCents();
 
         $chargeData = [
             "correlationID" => $correlationID,
             "value" => $orderValueInCents,
             "customer" => $customerData,
+            "comment" => $commentTrimmed,
+            "additionalInfo" => $additionalInfo,
         ];
 
         try {

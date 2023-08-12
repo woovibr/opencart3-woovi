@@ -20,6 +20,19 @@
 class ControllerExtensionPaymentWoovi extends Controller
 {
     /**
+     * Available setting keys.
+     */
+    private const FILLABLE_SETTINGS = [
+        "payment_woovi_status",
+        "payment_woovi_app_id",
+        "payment_woovi_order_status_when_waiting_id",
+        "payment_woovi_order_status_when_paid_id",
+        "payment_woovi_notify_customer",
+        "payment_woovi_tax_id_custom_field_id",
+        "payment_woovi_pix_payment_method_title",
+    ];
+
+    /**
      * Show or save settings.
      */
     public function index(): void
@@ -56,6 +69,8 @@ class ControllerExtensionPaymentWoovi extends Controller
             $this->url->link("extension/woovi/payment/woovi_webhooks")
         );
 
+        $settings = $this->getCurrentSettings();
+
         $this->response->setOutput($this->load->view("extension/payment/woovi", [
             "breadcrumbs" => $this->makeBreadcrumbs($marketplaceLink),
 
@@ -73,15 +88,6 @@ class ControllerExtensionPaymentWoovi extends Controller
             "previous_route" => $marketplaceLink,
             "create_custom_field_route" => $this->url->link("customer/custom_field", $tokenQuery),
 
-            // Settings
-            "payment_woovi_status" => $this->getConfig("payment_woovi_status"),
-            "payment_woovi_app_id" => $this->getConfig("payment_woovi_app_id"),
-            "payment_woovi_order_status_when_waiting_id" => $this->getConfig("payment_woovi_order_status_when_waiting_id"),
-            "payment_woovi_order_status_when_paid_id" => $this->getConfig("payment_woovi_order_status_when_paid_id"),
-            "payment_woovi_notify_customer" => $this->getConfig("payment_woovi_notify_customer"),
-            "payment_woovi_tax_id_custom_field_id" => $this->getConfig("payment_woovi_tax_id_custom_field_id"),
-            "payment_woovi_pix_payment_method_title" => $this->getConfig("payment_woovi_pix_payment_method_title"),
-
             "order_statuses" => $orderStatuses,
             "custom_fields" => $customFields,
 
@@ -90,7 +96,23 @@ class ControllerExtensionPaymentWoovi extends Controller
 
             // Transalations
             "lang" => $this->language->all(),
-        ]));
+        ] + $settings));
+    }
+
+    /**
+     * Get available settings, from request or config table.
+     * 
+     * @return array<array-key, mixed>
+     */
+    private function getCurrentSettings(): array
+    {
+        $settings = [];
+
+        foreach (self::FILLABLE_SETTINGS as $settingName) {
+            $settings[$settingName] = $this->getConfig($settingName);
+        }
+
+        return $settings;
     }
 
     /**
@@ -122,19 +144,9 @@ class ControllerExtensionPaymentWoovi extends Controller
 
         $this->load->model("setting/setting");
 
-        $fillableSettings = [
-            "payment_woovi_status",
-            "payment_woovi_app_id",
-            "payment_woovi_order_status_when_waiting_id",
-            "payment_woovi_order_status_when_paid_id",
-            "payment_woovi_notify_customer",
-            "payment_woovi_tax_id_custom_field_id",
-            "payment_woovi_pix_payment_method_title",
-        ];
-
         $updatedSettings = array_filter(
             $this->request->post,
-            fn (string $key) => in_array($key, $fillableSettings),
+            fn (string $key) => in_array($key, self::FILLABLE_SETTINGS),
             ARRAY_FILTER_USE_KEY
         );
 

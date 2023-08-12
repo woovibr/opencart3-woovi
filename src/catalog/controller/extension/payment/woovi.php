@@ -23,6 +23,7 @@ use Psr\Http\Client\ClientExceptionInterface;
  * @phpstan-type CreateChargeResult array{correlationID: string, charge: Charge}
  * @phpstan-type Charge array{paymentLinkUrl: string, qrCodeImage: string, brCode: string, pixKey: string, correlationID: string}
  * @phpstan-type CustomerData array{name: string, email: string, taxID?: string, phone?: string}
+ * @phpstan-type OpencartCustomerData array{firstname: string, lastname: string, email: string, telephone: string, custom_field: array}
  */
 class ControllerExtensionPaymentWoovi extends Controller
 {
@@ -40,7 +41,7 @@ class ControllerExtensionPaymentWoovi extends Controller
     {
         $this->load->language("extension/payment/woovi");
 
-        $showTaxIdInput = empty($this->getTaxIDFromSession());
+        $showTaxIdInput = empty($this->getTaxIDFromOpencartCustomer($this->getOpencartCustomer()));
 
         return $this->load->view("extension/payment/woovi", [
             "language" => $this->config->get("config_language"),
@@ -60,7 +61,10 @@ class ControllerExtensionPaymentWoovi extends Controller
         $this->load->model("extension/payment/woovi_order");
         $this->load->language("extension/payment/woovi");
 
-        if (! $this->isConfirmationRequestValid()) return;
+        $customerData = $this->getValidatedCustomerData($this->getOpencartCustomer());
+
+        if (empty($customerData)
+            || ! $this->isConfirmationRequestValid()) return;
 
         $orderId = $this->session->data["order_id"];
 
@@ -68,12 +72,6 @@ class ControllerExtensionPaymentWoovi extends Controller
 
         $correlationID = $this->generateCorrelationID();
         $orderValueInCents = $this->getOrderValueInCents();
-        $customerData = $this->getCustomerData();
-
-        if (empty($customerData)) {
-            $this->emitError($this->language->get("Missing customer data on checkout."));
-            return;
-        }
 
         $createChargeResult = $this->createWooviCharge($correlationID, $orderValueInCents, $customerData);
 
@@ -113,18 +111,6 @@ class ControllerExtensionPaymentWoovi extends Controller
             return false;
         }
 
-        $taxID = $this->getTaxID();
-
-        // Shows an error if it is invalid in both cases: CPF and CNPJ.
-        if (! ($this->isCPFValid($taxID) ^ $this->isCNPJValid($taxID))) {
-            $error = ! empty($this->getTaxIDFromSession())
-                ? ["warning" => $this->language->get("CPF/CNPJ invalid! Change the CPF/CNPJ field in your account settings page or on this page if you see the field.")]
-                : ["tax_id" => $this->language->get("CPF/CNPJ invalid!")];
-            $this->emitError($error);
-
-            return false;
-        }
-
         // Check if an order has already been registered with a pix charge.
         $orderId = intval($this->session->data["order_id"]);
 
@@ -137,56 +123,6 @@ class ControllerExtensionPaymentWoovi extends Controller
         }
 
         return true;
-    }
-
-    /**
-     * Get CPF/CNPJ from session.
-     */
-    private function getTaxIDFromSession(): string
-    {
-        $this->load->model("account/customer");
-
-        $taxIdCustomFieldId = $this->config->get("payment_woovi_tax_id_custom_field_id");
-        
-        $customerId = $this->session->data["customer_id"];
-
-        if (empty($customerId)) {
-            return "";
-        }
-
-        $customer = $this->model_account_customer->getCustomer($customerId);
-        
-        if (empty($customer["custom_field"])) {
-            return "";
-        }
-
-        $customFields = json_decode($customer["custom_field"], true);
-
-        if (! is_array($customFields)) {
-            $customFields = [];
-        }
-
-        if (! empty($customFields["account"][$taxIdCustomFieldId])) {
-            return $customFields["account"][$taxIdCustomFieldId];
-        }
-
-        if (! empty($customFields[$taxIdCustomFieldId])) {
-            return $customFields[$taxIdCustomFieldId];
-        }
-
-        return "";
-    }
-
-    /**
-     * Get CPF/CNPJ from session or request POSTed data.
-     */
-    private function getTaxID(): string
-    {
-        $taxID = $this->getTaxIDFromSession();
-
-        if (! empty($taxID)) return $taxID;
-
-        return $this->request->post["tax_id"] ?? "";
     }
 
     /**
@@ -284,30 +220,108 @@ class ControllerExtensionPaymentWoovi extends Controller
     /**
      * Gets the consumer data or returns null if not possible.
      * 
-     * @return CustomerData
+     * @param array<mixed> $opencartCustomer
+     * @return ?CustomerData
      */
-    private function getCustomerData(): ?array
+    private function getValidatedCustomerData(array $opencartCustomer): ?array
     {
-        $phone = $this->normalizePhone($this->customer->getTelephone());
-        $taxID = $this->getTaxID();
+        $firstName = strval($opencartCustomer["firstname"] ?? "");
+        $email = strval($opencartCustomer["email"] ?? "");
 
-        $customerId = $this->session->data["customer_id"];
+        if (empty($opencartCustomer)
+            || empty($firstName)
+            || empty($email)) {
+            $this->emitError($this->language->get("Missing customer data on checkout."));
+            return null;
+        }
+
+        $lastName = strval($opencartCustomer["lastname"] ?? "");
+
+        $customerData = [
+            "name" => trim($firstName . " " . $lastName),
+            "email" => $email,
+        ];
+
+        $taxIDFromOpencartCustomer = $this->getTaxIDFromOpencartCustomer($opencartCustomer);
+
+        $taxID = empty($taxIDFromOpencartCustomer)
+            ? strval($this->request->post["tax_id"] ?? "")
+            : $taxIDFromOpencartCustomer;
+
+        if (! ($this->isCPFValid($taxID) ^ $this->isCNPJValid($taxID))) {
+            $error = ! empty($taxIDFromOpencartCustomer)
+                ? ["warning" => $this->language->get("CPF/CNPJ invalid! Change the CPF/CNPJ field in your account settings page or on this page if you see the field.")]
+                : ["tax_id" => $this->language->get("CPF/CNPJ invalid!")];
+            
+            $this->emitError($error);
+            return null;
+        }
+
+        $customerData["taxID"] = $taxID;
+
+        $phone = strval($opencartCustomer["telephone"] ?? "");
+        if (! empty($phone)) $customerData["phone"] = $this->normalizePhone($phone);
+
+        return $customerData;
+    }
+
+    /**
+     * Get current OpenCart customer, registered or guest.
+     *
+     * @return array<mixed>
+     */
+    private function getOpencartCustomer(): array
+    {
+        if (! empty($this->session->data["guest"])
+            && is_array($this->session->data["guest"])) {
+            return $this->session->data["guest"];
+        }
+
+        $this->load->model("account/customer");
+
+        $customerId = $this->session->data["customer_id"] ?? null;
 
         if (empty($customerId)) {
-            return null;
+            return [];
         }
 
         $customer = $this->model_account_customer->getCustomer($customerId);
 
-        $customerData = [
-            "name" => $customer["firstname"] . " " . $customer["lastname"],
-            "email" => $customer["email"],
-        ];
+        if (! is_array($customer)) return [];
 
-        if (! empty($phone)) $customerData["phone"] = $phone;
-        if (! empty($taxID)) $customerData["taxID"] = $taxID;
+        return $customer;
+    }
 
-        return $customerData;
+    /**
+     * Get CPF/CNPJ from OpenCart customer.
+     * 
+     * @param array<mixed> $opencartCustomer
+     */
+    private function getTaxIDFromOpencartCustomer(array $opencartCustomer): string
+    {        
+        if (empty($opencartCustomer)) return "";
+
+        $taxIdCustomFieldId = $this->config->get("payment_woovi_tax_id_custom_field_id");
+
+        $customFields = $opencartCustomer["custom_field"] ?? "";
+
+        if (is_string($customFields)) {
+            $customFields = json_decode($customFields, true);
+        }
+
+        if (! is_array($customFields)) {
+            return "";
+        }
+
+        if (! empty($customFields["account"][$taxIdCustomFieldId])) {
+            return strval($customFields["account"][$taxIdCustomFieldId]);
+        }
+
+        if (! empty($customFields[$taxIdCustomFieldId])) {
+            return strval($customFields[$taxIdCustomFieldId]);
+        }
+
+        return "";
     }
 
     /**

@@ -69,8 +69,6 @@ class ControllerExtensionPaymentWoovi extends Controller
             || empty($order)
             || ! $this->isConfirmationRequestValid()) return;
 
-        $this->addOrderConfirmation();
-
         $correlationID = $this->generateCorrelationID();
         $createChargeResult = $this->createWooviCharge($correlationID, $customerData, $order);
 
@@ -78,6 +76,7 @@ class ControllerExtensionPaymentWoovi extends Controller
         if (empty($createChargeResult)) return;
 
         $this->relateOrderWithWooviCharge($order["order_id"], $createChargeResult);
+        $this->addOrderConfirmation();
         $this->persistCorrelationIDToCheckoutSuccess($correlationID);
 
         $this->emitJson([

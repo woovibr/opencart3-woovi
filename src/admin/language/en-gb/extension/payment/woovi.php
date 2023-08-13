@@ -17,7 +17,7 @@ $_["Enter your Woovi App ID"] = "Enter your Woovi App ID";
 
 $_["Sort Order"] = "Sort Order";
 
-$_["Pix payment method title"] = "Pix payment method title";
+$_["Payment method title"] = "Payment method title";
 
 $_["Change order status after issuing the pix to:"] = "Change order status after issuing the pix to:";
 $_["Change order status after pix charge is paid to:"] = "Change order status after pix charge is paid to:";

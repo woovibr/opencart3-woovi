@@ -128,8 +128,8 @@ class ModelExtensionPaymentWoovi extends Model
             $settings["payment_woovi_order_status_when_paid_id"] = $this->findOrderStatusIdByName(["Processando", "Processing"], 2);
         }
 
-        if (empty($settings["payment_woovi_pix_payment_method_title"])) {
-            $settings["payment_woovi_pix_payment_method_title"] = "Pix";
+        if (empty($settings["payment_woovi_payment_method_title"])) {
+            $settings["payment_woovi_payment_method_title"] = "Pix";
         }
 
         $this->model_setting_setting->editSetting("payment_woovi", $settings);

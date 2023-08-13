@@ -29,7 +29,9 @@ class OpencartCommands extends BaseTasks
 
         $installScriptPath = getenv("OPENCART_PATH") . "/install/cli_install.php";
 
-        if (!file_exists($installScriptPath)) return;
+        if (!file_exists($installScriptPath)) {
+            return;
+        }
 
         $this->taskExec("php")
             ->arg($installScriptPath)
@@ -93,8 +95,7 @@ class OpencartCommands extends BaseTasks
         $temporaryZipFile = $this->taskTmpFile("opencart-github-release" . $opencartVersion, ".zip");
         $collection->addTask($temporaryZipFile);
 
-        $collection->addCode(function ()
-            use ($consoleIO, $opencartDownloadUrl, $temporaryZipFile) {
+        $collection->addCode(function () use ($consoleIO, $opencartDownloadUrl, $temporaryZipFile) {
             $consoleIO->info("Downloading zip file from `$opencartDownloadUrl` to `" . $temporaryZipFile->getPath() . "`");
 
             file_put_contents(

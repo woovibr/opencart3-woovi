@@ -26,7 +26,7 @@ class DB
     public function query($sql)
     {
     }
-    
+
     /**
      * @param string $value
      * @return string

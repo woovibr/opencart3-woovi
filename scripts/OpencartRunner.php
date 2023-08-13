@@ -7,7 +7,7 @@ use Response;
 
 /**
  * Runs an OpenCart endpoint.
- * 
+ *
  * @property \Opencart\System\Library\Request $request
  * @property \Opencart\System\Engine\Controller $controller
  * @property Response $response
@@ -50,7 +50,9 @@ class OpencartRunner
      */
     public function boot(string $area = "catalog"): self
     {
-        if ($this->booted) return $this;
+        if ($this->booted) {
+            return $this;
+        }
 
         $frontControllerDirectory = $area == "catalog" ? "" : $area;
 
@@ -78,7 +80,7 @@ class OpencartRunner
 
     /**
      * Send an request to an endpoint.
-     * 
+     *
      * @param mixed $data
      */
     public function sendRequest(string $method, string $uri, $data = []): Response
@@ -98,7 +100,7 @@ class OpencartRunner
 
     /**
      * Retrieve an service from registry.
-     * 
+     *
      * @return object|null
      */
     public function __get(string $id)

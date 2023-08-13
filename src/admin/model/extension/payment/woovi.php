@@ -4,7 +4,7 @@
  * This model integrates the extension with the OpenCart database.
  *
  * This adds the events and creates a table of relationships between orders and charges, for example.
- * 
+ *
  * @property DB $db
  * @property Loader $load
  * @property ModelCustomerCustomField $model_customer_custom_field
@@ -50,7 +50,9 @@ class ModelExtensionPaymentWoovi extends Model
         $settings = $this->model_setting_setting->getSetting("payment_woovi");
 
         // Does not create if the extension has already been installed.
-        if (! empty($fingerprintSettings)) return;
+        if (! empty($fingerprintSettings)) {
+            return;
+        }
 
         $this->load->model("customer/custom_field");
         $this->load->model("localisation/language");
@@ -59,7 +61,8 @@ class ModelExtensionPaymentWoovi extends Model
         $descriptions = [];
 
         $languageIds = array_values(array_map(
-            fn ($language) => intval($language["language_id"]), $this->model_localisation_language->getLanguages()
+            fn ($language) => intval($language["language_id"]),
+            $this->model_localisation_language->getLanguages()
         ));
 
         foreach ($languageIds as $languageId) {
@@ -107,7 +110,7 @@ class ModelExtensionPaymentWoovi extends Model
         // On OpenCart installer, the pending status ID is 1:
         // https://github.com/opencart/opencart/blob/e3ae482e66671167b44f86e798f07f8084561117/upload/install/opencart.sql#L1578
         $orderStatusWhenWaitingId = $settings["payment_woovi_order_status_when_waiting_id"] ?? "";
-        
+
         if (empty($orderStatusWhenWaitingId)) {
             $orderStatusWhenWaitingId = $this->model_setting_setting->getSettingValue("config_order_status_id");
         }
@@ -135,7 +138,7 @@ class ModelExtensionPaymentWoovi extends Model
     /**
      * Looks for an ID that matches one of the names in the array or returns
      * the default ID.
-     * 
+     *
      * @param array<string> $possibleNames
      */
     private function findOrderStatusIdByName(array $possibleNames, int $defaultId): int

@@ -22,7 +22,9 @@ class StubsCommands extends BaseTasks
         $this->dotenv->required(["OPENCART_PATH"])->notEmpty();
         $opencartPath = getenv("OPENCART_PATH");
 
-        if (empty($directories)) $directories = ["admin", "catalog", "system"];
+        if (empty($directories)) {
+            $directories = ["admin", "catalog", "system"];
+        }
 
         foreach ($directories as $directory) {
             $this->generateStubsForDirectory($opencartPath, $directory);

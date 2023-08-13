@@ -23,17 +23,17 @@ class ControllerExtensionWooviPaymentWooviWebhooks extends Controller
     /**
      * Called when testing webhooks.
      */
-    const TEST_WEBHOOK_EVENT = "teste_webhook";
+    public const TEST_WEBHOOK_EVENT = "teste_webhook";
 
     /**
      * Called when client configure plugin on Woovi platform.
      */
-    const OPENCART_CONFIGURE_EVENT = "opencart-configure";
+    public const OPENCART_CONFIGURE_EVENT = "opencart-configure";
 
     /**
      * Charge completed is when a charge is fully paid.
      */
-    const OPENPIX_CHARGE_COMPLETED_EVENT = "OPENPIX:CHARGE_COMPLETED";
+    public const OPENPIX_CHARGE_COMPLETED_EVENT = "OPENPIX:CHARGE_COMPLETED";
 
     /**
      * Load dependencies.
@@ -65,7 +65,9 @@ class ControllerExtensionWooviPaymentWooviWebhooks extends Controller
 
         $payload = $this->getValidatedWebhookPayload();
 
-        if (is_null($payload)) return;
+        if (is_null($payload)) {
+            return;
+        }
 
         $this->handleWebhookEvents($payload);
     }

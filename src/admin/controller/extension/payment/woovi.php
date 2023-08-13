@@ -101,7 +101,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Get available settings, from request or config table.
-     * 
+     *
      * @return array<array-key, mixed>
      */
     private function getCurrentSettings(): array
@@ -122,7 +122,9 @@ class ControllerExtensionPaymentWoovi extends Controller
      */
     private function getConfig(string $key)
     {
-        if (isset($this->request->post[$key])) return $this->request->post[$key];
+        if (isset($this->request->post[$key])) {
+            return $this->request->post[$key];
+        }
 
         return $this->config->get($key);
     }
@@ -134,7 +136,9 @@ class ControllerExtensionPaymentWoovi extends Controller
      */
     private function save(): array
     {
-        if ($_SERVER["REQUEST_METHOD"] !== "POST") return [];
+        if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+            return [];
+        }
 
         $this->load->language("extension/payment/woovi");
 
@@ -202,7 +206,6 @@ class ControllerExtensionPaymentWoovi extends Controller
                 "text" => $this->language->get("heading_title"),
                 "href" => $this->url->link(
                     "extension/woovi/payment/woovi",
-
                     http_build_query(
                         [
                             "user_token" => $this->session->data["user_token"],

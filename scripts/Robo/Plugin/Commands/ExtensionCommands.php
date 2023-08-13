@@ -17,7 +17,7 @@ class ExtensionCommands extends BaseTasks
     public function extensionLink()
     {
         $this->dotenv->required(["EXTENSION_PATH", "OPENCART_PATH"])->notEmpty();
-        
+
         $baseDirectory = getenv("EXTENSION_PATH") . "/src";
         $opencartPath = getenv("OPENCART_PATH");
 
@@ -186,8 +186,7 @@ class ExtensionCommands extends BaseTasks
         $createArtifact = $this->taskPack($artifactPath);
 
         // Pack files in temporary work dir.
-        $collection->addCode(function ()
-            use ($createArtifact, $changeToWorkFolder) {
+        $collection->addCode(function () use ($createArtifact, $changeToWorkFolder) {
             $paths = $this->findArtifactIncludedFilePaths(
                 $changeToWorkFolder->getPath()
             );
@@ -237,7 +236,7 @@ class ExtensionCommands extends BaseTasks
      */
     private function findArtifactIncludedFilePaths(string $temporaryWorkDir): array
     {
-        $finder = (new Finder)->files()
+        $finder = (new Finder())->files()
             ->in($temporaryWorkDir . "/src")
             ->ignoreDotFiles(false);
 

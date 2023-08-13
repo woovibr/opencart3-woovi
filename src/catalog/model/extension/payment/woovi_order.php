@@ -3,11 +3,11 @@
 /**
  * This model relates OpenCart orders with charges on Woovi so we can
  * know which was the order for a specific charge, for example.
- * 
+ *
  * @property ModelCheckoutOrder $model_checkout_order
  * @property DB $db
  * @property Loader $load
- * 
+ *
  * @phpstan-import-type Charge from ControllerExtensionPaymentWoovi
  * @phpstan-type OpencartOrder array{order_id: string, order_status_id: string}
  * @phpstan-type WooviOrderData array{opencart_order_id: int, woovi_correlation_id: string, woovi_payment_link_url: string, woovi_qrcode_image_url: string, woovi_brcode: string, woovi_pixkey: string}
@@ -16,7 +16,7 @@ class ModelExtensionPaymentWooviOrder extends Model
 {
     /**
      * Relates a Woovi charge to an OpenCart order.
-     * 
+     *
      * @param Charge $charge Woovi charge data.
      */
     public function relateOrderWithCharge(string $opencartOrderId, string $wooviCorrelationID, array $charge): void
@@ -41,7 +41,7 @@ class ModelExtensionPaymentWooviOrder extends Model
 
     /**
      * Return an Woovi order by Woovi correlationID or an empty array if not found
-     * 
+     *
      * @return WooviOrderData|array{}
      */
     public function getWooviOrderByCorrelationID(string $correlationID): array
@@ -56,7 +56,7 @@ class ModelExtensionPaymentWooviOrder extends Model
 
     /**
      * Return an Woovi order by OpenCart order ID or an empty array if not found.
-     * 
+     *
      * @return WooviOrderData|array{}
      */
     public function getWooviOrderByOpencartOrderId(string $opencartOrderId): array
@@ -65,13 +65,13 @@ class ModelExtensionPaymentWooviOrder extends Model
         $result = $this->db->query(
             "SELECT * FROM `" . DB_PREFIX . "woovi_order` WHERE `opencart_order_id` = '" . $this->db->escape($opencartOrderId) . "'"
         );
-        
+
         return $result->row;
     }
 
     /**
      * Get OpenCart order by correlationID or returns `null` if not found.
-     * 
+     *
      * @return ?OpencartOrder
      */
     public function getOpencartOrderByCorrelationID(string $correlationID): ?array
@@ -80,11 +80,15 @@ class ModelExtensionPaymentWooviOrder extends Model
 
         $wooviOrder = $this->getWooviOrderByCorrelationID($correlationID);
 
-        if (empty($wooviOrder)) return null;
-        
+        if (empty($wooviOrder)) {
+            return null;
+        }
+
         $order = $this->model_checkout_order->getOrder(intval($wooviOrder["opencart_order_id"]));
 
-        if (empty($order)) return null;
+        if (empty($order)) {
+            return null;
+        }
 
         /** @var OpencartOrder $order */
         return $order;

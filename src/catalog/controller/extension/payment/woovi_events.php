@@ -2,13 +2,13 @@
 
 /**
  * OpenCart event handlers.
- * 
+ *
  * @property Loader $load
  * @property Request $request
  * @property Session $session
  * @property Config $config
  * @property ModelExtensionPaymentWooviOrder $model_extension_payment_woovi_order
- * 
+ *
  * @phpstan-import-type WooviEnvironment from \Woovi\Opencart\Extension
  */
 class ControllerExtensionPaymentWooviEvents extends Controller
@@ -33,10 +33,14 @@ class ControllerExtensionPaymentWooviEvents extends Controller
     public function handleCatalogViewCommonSuccessBeforeEvent(string &$route, array &$data): void
     {
         // Ignore non-checkout success pages.
-        if ($this->request->get["route"] !== "checkout/success") return;
+        if ($this->request->get["route"] !== "checkout/success") {
+            return;
+        }
 
         // Ignore non-Pix payments.
-        if (empty($this->session->data["woovi_correlation_id"])) return;
+        if (empty($this->session->data["woovi_correlation_id"])) {
+            return;
+        }
 
         $this->load();
 
@@ -67,7 +71,9 @@ class ControllerExtensionPaymentWooviEvents extends Controller
 
         // Ignore non-Pix payments.
         if (! array_key_exists("woovi_correlation_id", $this->session->data)
-            || ! $lastOrderId) return;
+            || ! $lastOrderId) {
+            return;
+        }
 
         $this->load();
 
@@ -75,7 +81,9 @@ class ControllerExtensionPaymentWooviEvents extends Controller
         $wooviOrder = $this->model_extension_payment_woovi_order->getWooviOrderByCorrelationID($this->session->data["woovi_correlation_id"]);
 
         // Ignore if correlationID is not registered.
-        if (! $wooviOrder) return;
+        if (! $wooviOrder) {
+            return;
+        }
 
         $wooviOpencartOrderId = $wooviOrder["opencart_order_id"];
 
@@ -101,14 +109,18 @@ class ControllerExtensionPaymentWooviEvents extends Controller
     public function handleCatalogViewAccountOrderInfoBeforeEvent(string &$route, array &$data): void
     {
         // Ignore non-Pix payments.
-        if ($data["payment_method"] != "Pix") return;
+        if ($data["payment_method"] != "Pix") {
+            return;
+        }
 
         $this->load();
 
         // Fetch correlationID using the opencart order id.
         $wooviOrder = $this->model_extension_payment_woovi_order->getWooviOrderByOpencartOrderId($data["order_id"]);
 
-        if (empty($wooviOrder)) return;
+        if (empty($wooviOrder)) {
+            return;
+        }
 
         $correlationID = $wooviOrder["woovi_correlation_id"];
 

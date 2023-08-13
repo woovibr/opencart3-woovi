@@ -3,7 +3,7 @@
 namespace Woovi\Opencart;
 
 /**
- * Logs useful information to a log file. 
+ * Logs useful information to a log file.
  */
 class Logger
 {
@@ -93,11 +93,11 @@ class Logger
 
         // Find caller from backtrace.
         // It is taking into account this method and the appendMessage method.
-        
+
         // Not populate the "object" index and omit the "args" index,
         // and thus all the function/method arguments, to save memory.
         $options = false|DEBUG_BACKTRACE_IGNORE_ARGS;
-        
+
         $caller = array_slice(debug_backtrace($options, 3), 2, 1)[0];
 
         if (! empty($caller["file"]) && ! empty($caller["line"])) {

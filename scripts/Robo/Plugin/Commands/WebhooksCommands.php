@@ -20,7 +20,7 @@ class WebhooksCommands extends BaseTasks
     /**
      * URI of webhook endpoint.
      */
-    const WEBHOOK_ENDPOINT_URI = "extension/woovi/payment/woovi_webhooks";
+    public const WEBHOOK_ENDPOINT_URI = "extension/woovi/payment/woovi_webhooks";
 
     /**
      * The opencart runner used by commands.
@@ -64,8 +64,12 @@ class WebhooksCommands extends BaseTasks
      */
     public function webhooksSetPublicKey(string $publicKey = ""): void
     {
-        if (empty($publicKey)) $publicKey = $_SERVER["WEBHOOKS_PUBLIC_KEY"] ?? "";
-        if (empty($publicKey)) return;
+        if (empty($publicKey)) {
+            $publicKey = $_SERVER["WEBHOOKS_PUBLIC_KEY"] ?? "";
+        }
+        if (empty($publicKey)) {
+            return;
+        }
 
         $classPath = $this->getWebhooksResourceClassPath();
 
@@ -124,7 +128,7 @@ PHP;
     private function getWebhooksResourceClassPath(): string
     {
         $reflectionClass = new ReflectionClass(Webhooks::class);
-        
+
         return $reflectionClass->getFileName();
     }
 
@@ -176,14 +180,16 @@ PHP;
      */
     private function makeOpencartRunner(): OpencartRunner
     {
-        if (! is_null($this->opencartRunner)) return $this->opencartRunner;
+        if (! is_null($this->opencartRunner)) {
+            return $this->opencartRunner;
+        }
 
         $this->opencartRunner = (new OpencartRunner(
             getenv("OPENCART_PATH"),
             getenv("APP_PORT")
         ))->boot();
 
-        include_once(DIR_APPLICATION . "controller/extension/woovi/payment/woovi_webhooks.php");	
+        include_once(DIR_APPLICATION . "controller/extension/woovi/payment/woovi_webhooks.php");
 
         return $this->opencartRunner;
     }

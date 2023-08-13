@@ -7,3 +7,4 @@ phpstan.neon
 stubs/*
 !stubs/*.overrides.php
 src/system/config/woovi.php
+.php-cs-fixer.cache

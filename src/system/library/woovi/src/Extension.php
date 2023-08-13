@@ -9,7 +9,7 @@ use OpenPix\PhpSdk\Client;
 
 /**
  * Service provider for Woovi Opencart library.
- * 
+ *
  * @phpstan-type WooviEnvironment array{env?: "production"|"development"|"staging", apiUrl?: string, pluginUrl?: string}
  */
 class Extension
@@ -46,14 +46,16 @@ class Extension
 
     /**
      * Get environment data.
-     * 
+     *
      * @return WooviEnvironment
      */
     public function getEnvironment(): array
     {
         $env = $this->getConfig()->get("woovi_env");
 
-        if (! is_array($env)) return [];
+        if (! is_array($env)) {
+            return [];
+        }
 
         return $env;
     }
@@ -63,7 +65,9 @@ class Extension
      */
     private function registerPhpSdkClient(): void
     {
-        if ($this->registry->has("woovi_api_client")) return;
+        if ($this->registry->has("woovi_api_client")) {
+            return;
+        }
 
         $this->registry->set("woovi_api_client", $this->makeWooviApiClient());
     }
@@ -73,7 +77,9 @@ class Extension
      */
     private function registerLogger(): void
     {
-        if ($this->registry->has("woovi_logger")) return;
+        if ($this->registry->has("woovi_logger")) {
+            return;
+        }
 
         $this->registry->set("woovi_logger", new Logger(DIR_LOGS . "/woovi.log"));
     }

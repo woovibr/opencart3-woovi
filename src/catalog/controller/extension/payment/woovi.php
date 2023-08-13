@@ -19,7 +19,7 @@ use Psr\Http\Client\ClientExceptionInterface;
  * @property ModelExtensionPaymentWooviOrder $model_extension_payment_woovi_order
  * @property \OpenPix\PhpSdk\Client $woovi_api_client
  * @property \Woovi\Opencart\Logger $woovi_logger
- * 
+ *
  * @phpstan-type CreateChargeResult array{correlationID: string, charge: Charge}
  * @phpstan-type Charge array{paymentLinkUrl: string, qrCodeImage: string, brCode: string, pixKey: string, correlationID: string}
  * @phpstan-type CustomerData array{name: string, email: string, taxID: string, phone?: string}
@@ -67,13 +67,17 @@ class ControllerExtensionPaymentWoovi extends Controller
 
         if (empty($customerData)
             || empty($order)
-            || ! $this->isConfirmationRequestValid()) return;
+            || ! $this->isConfirmationRequestValid()) {
+            return;
+        }
 
         $correlationID = $this->generateCorrelationID();
         $createChargeResult = $this->createWooviCharge($correlationID, $customerData, $order);
 
         // An error ocurred and it is logged.
-        if (empty($createChargeResult)) return;
+        if (empty($createChargeResult)) {
+            return;
+        }
 
         $this->relateOrderWithWooviCharge($order["order_id"], $createChargeResult);
         $this->addOrderConfirmation();
@@ -90,7 +94,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Get validated OpenCart order or null.
-     * 
+     *
      * @return ?OpencartOrder
      */
     private function getValidatedOpencartOrder(): ?array
@@ -173,7 +177,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Create an charge and send to Woovi API.
-     * 
+     *
      * @param CustomerData $customerData
      * @param OpencartOrder $opencartOrder
      * @return CreateChargeResult
@@ -234,7 +238,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Relates the OpenCart order to the charge on Woovi.
-     * 
+     *
      * @param CreateChargeResult $createChargeResult
      */
     private function relateOrderWithWooviCharge(string $opencartOrderId, array $createChargeResult): void
@@ -257,7 +261,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Gets the consumer data or returns null if not possible.
-     * 
+     *
      * @param array<mixed> $opencartCustomer
      * @return ?CustomerData
      */
@@ -292,7 +296,7 @@ class ControllerExtensionPaymentWoovi extends Controller
             $error = ! empty($taxIDFromOpencartCustomer)
                 ? ["warning" => $this->language->get("CPF/CNPJ invalid! Change the CPF/CNPJ field in your account settings page or on this page if you see the field.")]
                 : ["tax_id" => $this->language->get("CPF/CNPJ invalid!")];
-            
+
             $this->emitError($error);
             return null;
         }
@@ -300,7 +304,7 @@ class ControllerExtensionPaymentWoovi extends Controller
         $customerData["taxID"] = $taxID;
 
         $phone = $this->normalizePhone($opencartCustomer["telephone"] ?? "");
-        
+
         if (! empty($phone)) {
             $customerData["phone"] = $phone;
         }
@@ -330,19 +334,23 @@ class ControllerExtensionPaymentWoovi extends Controller
 
         $customer = $this->model_account_customer->getCustomer($customerId);
 
-        if (! is_array($customer)) return [];
+        if (! is_array($customer)) {
+            return [];
+        }
 
         return $customer;
     }
 
     /**
      * Get CPF/CNPJ from OpenCart customer.
-     * 
+     *
      * @param array<mixed> $opencartCustomer
      */
     private function getTaxIDFromOpencartCustomer(array $opencartCustomer): string
-    {        
-        if (empty($opencartCustomer)) return "";
+    {
+        if (empty($opencartCustomer)) {
+            return "";
+        }
 
         $taxIdCustomFieldId = $this->config->get("payment_woovi_tax_id_custom_field_id");
 
@@ -369,16 +377,20 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Normalize customer telephone.
-     * 
+     *
      * @param mixed $phone
      */
     private function normalizePhone($phone): string
     {
-        if (! is_string($phone)) return "";
-        
+        if (! is_string($phone)) {
+            return "";
+        }
+
         $phone = preg_replace("/^0|\D+/", "", $phone);
 
-        if (! is_string($phone)) return "";
+        if (! is_string($phone)) {
+            return "";
+        }
 
         if (strlen($phone) > 11) {
             return $phone;
@@ -398,7 +410,9 @@ class ControllerExtensionPaymentWoovi extends Controller
      */
     private function emitError($error): void
     {
-        if (is_string($error)) $error = ["warning" => $error];
+        if (is_string($error)) {
+            $error = ["warning" => $error];
+        }
 
         $this->emitJson(["error" => $error]);
     }

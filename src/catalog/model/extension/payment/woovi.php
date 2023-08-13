@@ -2,7 +2,7 @@
 
 /**
  * Add Pix payment method to OpenCart.
- * 
+ *
  * @property Loader $load
  * @property Language $language
  * @property Config $config
@@ -11,7 +11,7 @@ class ModelExtensionPaymentWoovi extends Model
 {
     /**
      * Called when OpenCart show available payment methods to user.
-     * 
+     *
      * @return array{title: mixed, code: string, sort_order: int}
      */
     public function getMethod(): array

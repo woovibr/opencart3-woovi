@@ -2,7 +2,7 @@
 
 /**
  * Called by webhook configuration.
- * 
+ *
  * @property DB $db
  */
 class ModelExtensionPaymentWooviWebhooks extends Model

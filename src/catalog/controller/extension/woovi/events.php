@@ -11,7 +11,7 @@
  *
  * @phpstan-import-type WooviEnvironment from \Woovi\Opencart\Extension
  */
-class ControllerExtensionPaymentWooviEvents extends Controller
+class ControllerExtensionWooviEvents extends Controller
 {
     /**
      * Load necessary dependencies.

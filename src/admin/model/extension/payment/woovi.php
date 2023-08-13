@@ -193,19 +193,19 @@ class ModelExtensionPaymentWoovi extends Model
         $this->model_setting_event->addEvent(
             "woovi_catalog_view_account_order_info_before",
             "catalog/view/account/order_info/before",
-            "extension/payment/woovi_events/handleCatalogViewAccountOrderInfoBeforeEvent",
+            "extension/woovi/events/handleCatalogViewAccountOrderInfoBeforeEvent",
         );
 
         $this->model_setting_event->addEvent(
             "woovi_catalog_controller_checkout_success_before",
             "catalog/controller/checkout/success/before",
-            "extension/payment/woovi_events/handleCatalogControllerCheckoutSuccessBeforeEvent"
+            "extension/woovi/events/handleCatalogControllerCheckoutSuccessBeforeEvent"
         );
 
         $this->model_setting_event->addEvent(
             "woovi_catalog_view_common_success_before",
             "catalog/view/common/success/before",
-            "extension/payment/woovi_events/handleCatalogViewCommonSuccessBeforeEvent"
+            "extension/woovi/events/handleCatalogViewCommonSuccessBeforeEvent"
         );
     }
 

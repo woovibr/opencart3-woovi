@@ -29,7 +29,7 @@ class ControllerExtensionPaymentWoovi extends Controller
         "payment_woovi_order_status_when_paid_id",
         "payment_woovi_notify_customer",
         "payment_woovi_tax_id_custom_field_id",
-        "payment_woovi_pix_payment_method_title",
+        "payment_woovi_payment_method_title",
     ];
 
     /**

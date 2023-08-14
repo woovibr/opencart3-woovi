@@ -184,7 +184,7 @@ class ControllerExtensionPaymentWoovi extends Controller
      */
     private function createWooviCharge(string $correlationID, array $customerData, array $opencartOrder): ?array
     {
-        $this->load->helper("woovi/library"); // Setup API client & logger.
+        $this->load->library("woovi"); // Setup API client & logger.
 
         $orderId = $opencartOrder["order_id"];
         $additionalInfo = [

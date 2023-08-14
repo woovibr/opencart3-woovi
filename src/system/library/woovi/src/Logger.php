@@ -9,14 +9,14 @@ class Logger
 {
     /**
      * Log file paths.
-     * 
+     *
      * @var array<string>
      */
     private array $logFilePaths;
 
     /**
      * Create a new `Logger` instance.
-     * 
+     *
      * @param array<string> $logFilePaths
      */
     public function __construct(array $logFilePaths)

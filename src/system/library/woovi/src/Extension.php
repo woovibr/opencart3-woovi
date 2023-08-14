@@ -81,7 +81,12 @@ class Extension
             return;
         }
 
-        $this->registry->set("woovi_logger", new Logger(DIR_LOGS . "/woovi.log"));
+        $logFilePaths = [
+            DIR_LOGS . "/error.log",
+            DIR_LOGS . "/woovi.log",
+        ];
+
+        $this->registry->set("woovi_logger", new Logger($logFilePaths));
     }
 
     /**

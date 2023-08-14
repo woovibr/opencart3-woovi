@@ -40,7 +40,7 @@ class ControllerExtensionWooviPaymentWooviWebhooks extends Controller
      */
     private function load(): void
     {
-        $this->load->helper("woovi/library"); // Setup API client.
+        $this->load->library("woovi"); // Setup API client.
         $this->load->language("extension/payment/woovi");
         $this->load->model("extension/payment/woovi_order");
         $this->load->model("extension/payment/woovi_webhooks");

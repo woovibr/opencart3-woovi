@@ -24,7 +24,7 @@ class ModelExtensionPaymentWoovi extends Model
     /**
      * Regex for validating CPF/CNPJ field format.
      */
-    private const TAX_ID_CUSTOM_FIELD_VALIDATION_REGEX = "/(^\d{3}\.\d{3}\.\d{3}\-\d{2}$)|(^\d{11}$)|(^\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}$)/";
+    private const TAX_ID_CUSTOM_FIELD_VALIDATION_REGEX = "/(^\s*\d{3}\.\d{3}\.\d{3}\-\d{2}\s*$)|(^\s*\d{11}\s*$)|(^\s*\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}\s*$)/";
 
     /**
      * Installs the necessary structures for the extension to work, such as the table to track charges on orders.

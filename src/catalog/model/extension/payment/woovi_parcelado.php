@@ -12,12 +12,12 @@ class ModelExtensionPaymentWooviParcelado extends Model
     /**
      * The code of payment method.
      */
-    public const METHOD_CODE = "woovi_parcelado";
+    public const METHOD_KEY = "woovi_parcelado";
 
     /**
      * Prefix of config keys.
      */
-    public const CONFIG_PREFIX = "payment_" . self::METHOD_CODE;
+    public const CONFIG_PREFIX = "payment_" . self::METHOD_KEY;
 
     /**
      * Called when OpenCart show available payment methods to user.
@@ -26,7 +26,7 @@ class ModelExtensionPaymentWooviParcelado extends Model
      */
     public function getMethod(): array
     {
-        $this->load->language("extension/payment/" . self::METHOD_CODE);
+        $this->load->language("extension/payment/" . self::METHOD_KEY);
 
         $paymentMethodTitle = $this->config->get(self::CONFIG_PREFIX . "_payment_method_title");
 
@@ -36,7 +36,7 @@ class ModelExtensionPaymentWooviParcelado extends Model
 
         return [
             "title" => $paymentMethodTitle,
-            "code" => self::METHOD_CODE,
+            "code" => self::METHOD_KEY,
             "sort_order" => 0,
         ];
     }

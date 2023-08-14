@@ -291,6 +291,7 @@ class ControllerExtensionPaymentWoovi extends Controller
         $taxID = empty($taxIDFromOpencartCustomer)
             ? strval($this->request->post["tax_id"] ?? "")
             : $taxIDFromOpencartCustomer;
+        $taxID = trim($taxID);
 
         if (! ($this->isCPFValid($taxID) ^ $this->isCNPJValid($taxID))) {
             $error = ! empty($taxIDFromOpencartCustomer)
@@ -365,11 +366,11 @@ class ControllerExtensionPaymentWoovi extends Controller
         }
 
         if (! empty($customFields["account"][$taxIdCustomFieldId])) {
-            return strval($customFields["account"][$taxIdCustomFieldId]);
+            return trim(strval($customFields["account"][$taxIdCustomFieldId]));
         }
 
         if (! empty($customFields[$taxIdCustomFieldId])) {
-            return strval($customFields[$taxIdCustomFieldId]);
+            return trim(strval($customFields[$taxIdCustomFieldId]));
         }
 
         return "";

@@ -81,7 +81,6 @@ class ModelExtensionPaymentWoovi extends Model
             "location" => "account",
             "status" => 1,
             "sort_order" => "",
-            "value" => "",
             "custom_field_customer_group" => [
                 [
                     "customer_group_id" => $customerGroupId,

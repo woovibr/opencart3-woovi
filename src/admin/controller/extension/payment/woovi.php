@@ -20,16 +20,26 @@
 class ControllerExtensionPaymentWoovi extends Controller
 {
     /**
+     * The code of payment method.
+     */
+    public const METHOD_CODE = "woovi";
+
+    /**
+     * Prefix of config keys.
+     */
+    public const CONFIG_PREFIX = "payment_" . self::METHOD_CODE;
+
+    /**
      * Available setting keys.
      */
-    private const FILLABLE_SETTINGS = [
-        "payment_woovi_status",
-        "payment_woovi_app_id",
-        "payment_woovi_order_status_when_waiting_id",
-        "payment_woovi_order_status_when_paid_id",
-        "payment_woovi_notify_customer",
-        "payment_woovi_tax_id_custom_field_id",
-        "payment_woovi_payment_method_title",
+    public const FILLABLE_SETTINGS = [
+        self::CONFIG_PREFIX . "_status",
+        self::CONFIG_PREFIX . "_app_id",
+        self::CONFIG_PREFIX . "_order_status_when_waiting_id",
+        self::CONFIG_PREFIX . "_order_status_when_paid_id",
+        self::CONFIG_PREFIX . "_notify_customer",
+        self::CONFIG_PREFIX . "_tax_id_custom_field_id",
+        self::CONFIG_PREFIX . "_payment_method_title",
     ];
 
     /**

@@ -19,7 +19,7 @@ class Woovi
     {
         $this->registry = $registry;
 
-        $this->loadLibrary();       
+        $this->loadLibrary();
     }
 
     /**

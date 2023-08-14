@@ -3,21 +3,25 @@
 namespace Woovi\Opencart;
 
 /**
- * Logs useful information to a log file.
+ * Logs useful information to log files.
  */
 class Logger
 {
     /**
-     * Path to log file.
+     * Log file paths.
+     * 
+     * @var array<string>
      */
-    private string $logFilePath;
+    private array $logFilePaths;
 
     /**
      * Create a new `Logger` instance.
+     * 
+     * @param array<string> $logFilePaths
      */
-    public function __construct(string $logFilePath)
+    public function __construct(array $logFilePaths)
     {
-        $this->logFilePath = $logFilePath;
+        $this->logFilePaths = $logFilePaths;
     }
 
     /**
@@ -69,7 +73,17 @@ class Logger
             . $message
             . $this->makeMessageFooter();
 
-        file_put_contents($this->logFilePath, $message, FILE_APPEND);
+        $this->saveMessage($message);
+    }
+
+    /**
+     * Save log message.
+     */
+    private function saveMessage(string $message): void
+    {
+        foreach ($this->logFilePaths as $path) {
+            file_put_contents($path, $message, FILE_APPEND);
+        }
     }
 
     /**

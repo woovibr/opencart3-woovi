@@ -17,6 +17,11 @@
 class ModelExtensionPaymentWoovi extends Model
 {
     /**
+     * Current extension version.
+     */
+    public const CURRENT_VERSION = "1.0.0";
+
+    /**
      * Regex for validating CPF/CNPJ field format.
      */
     private const TAX_ID_CUSTOM_FIELD_VALIDATION_REGEX = "/(^\d{3}\.\d{3}\.\d{3}\-\d{2}$)|(^\d{11}$)|(^\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}$)/";
@@ -227,10 +232,7 @@ class ModelExtensionPaymentWoovi extends Model
         $this->load->model("setting/extension");
 
         // Store latest upgraded version.
-        /** @var array{name: string, version: string, code: string, link: string, author: string} $manifest */
-        $manifest = json_decode((string) file_get_contents(__DIR__ . "/../../../../install.json"), true);
-
-        $currentVersion = $manifest["version"];
+        $currentVersion = self::CURRENT_VERSION;
 
         $this->model_setting_setting->editSetting("thirdparty_payment_woovi", [
             "thirdparty_payment_woovi_latest_upgrade" => $currentVersion,

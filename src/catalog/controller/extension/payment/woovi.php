@@ -30,7 +30,15 @@ class ControllerExtensionPaymentWoovi extends Controller
     /**
      * Scope of log messages.
      */
-    private const LOG_SCOPE = "catalog/checkout";
+    public const LOG_SCOPE = "catalog/checkout";
+
+    /**
+     * Available payment method codes.
+     */
+    public const AVAILABLE_METHOD_CODES = [
+        "woovi",
+        "woovi_parcelado",
+    ];
 
     /**
      * Called when the user selects the "Pix" payment method.
@@ -130,8 +138,11 @@ class ControllerExtensionPaymentWoovi extends Controller
             return false;
         }
 
-        if (empty($this->session->data["payment_method"]["code"])
-            || $this->session->data["payment_method"]["code"] != "woovi") {
+        $paymentMethodCode = $this->session->data["payment_method"]["code"] ?? "";
+        $invalidPaymentMethod = empty($paymentMethodCode)
+            || ! in_array($paymentMethodCode, self::AVAILABLE_METHOD_CODES);
+
+        if ($invalidPaymentMethod) {
             $this->emitError($this->language->get("Payment method is incorrect!"));
 
             return false;
@@ -187,6 +198,10 @@ class ControllerExtensionPaymentWoovi extends Controller
         $this->load->helper("woovi/library"); // Setup API client & logger.
 
         $orderId = $opencartOrder["order_id"];
+
+        $type = $opencartOrder["payment_code"] === "woovi"
+            ? "DYNAMIC"
+            : "PIX_CREDIT";
         $additionalInfo = [
             [
                 "key" => "Pedido",
@@ -206,6 +221,7 @@ class ControllerExtensionPaymentWoovi extends Controller
             "customer" => $customerData,
             "comment" => $commentTrimmed,
             "additionalInfo" => $additionalInfo,
+            "type" => $type,
         ];
 
         try {

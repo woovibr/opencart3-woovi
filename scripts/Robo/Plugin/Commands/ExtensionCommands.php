@@ -185,7 +185,6 @@ class ExtensionCommands extends BaseTasks
         // Pack files into an artifact file.
         $createArtifact = $this->taskPack($artifactPath);
 
-        // Pack files in temporary work dir.
         $collection->addCode(function () use ($createArtifact, $changeToWorkFolder) {
             $paths = $this->findArtifactIncludedFilePaths(
                 $changeToWorkFolder->getPath()
@@ -206,8 +205,6 @@ class ExtensionCommands extends BaseTasks
      */
     public function extensionLint(): void
     {
-        $collection = $this->collectionBuilder();
-
         // You need delete the stub file if you need regenerate stubs.
         $stubsDir = __DIR__ . "/../../../../stubs/";
 
@@ -241,7 +238,7 @@ class ExtensionCommands extends BaseTasks
             ->ignoreDotFiles(false);
 
         $paths = array_flip(array_map(
-            fn (SplFileInfo $file) => $file->getRelativePathname(),
+            fn (SplFileInfo $file) => "upload/" . $file->getRelativePathname(),
             iterator_to_array($finder)
         ));
 

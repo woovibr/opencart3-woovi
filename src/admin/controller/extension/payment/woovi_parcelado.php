@@ -10,11 +10,6 @@ class ControllerExtensionPaymentWooviParcelado extends Controller
      */
     public function index(): void
     {
-        $this->load->controller(
-            "extension/woovi/base_config/index",
-            [
-                "key" => "woovi_parcelado",
-            ]
-        );
+        $this->load->controller("extension/payment/woovi/index");
     }
 }

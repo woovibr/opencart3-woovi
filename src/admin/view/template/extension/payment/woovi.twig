@@ -121,6 +121,12 @@
                 </div>
 
                 <div class="panel-body">
+                    <div class="form-group" style="padding-top: 0; padding-left: 15px">
+                        <a href="{{ create_custom_field_route }}">
+                            {{ lang["Create an custom field here."] }}
+                        </a>
+                    </div>
+
                     <!-- TaxID custom field -->
                     <div class="form-group">
                         <label
@@ -146,9 +152,6 @@
                                     </option>
                                 {% endfor %}
                             </select>
-                            <a href="{{ create_custom_field_route }}">
-                                {{ lang["Create an custom field here."] }}
-                            </a>
                         </div>
                     </div>
 

@@ -2,15 +2,15 @@
 
 /** @var array<string, string> $_ */
 
-$_["heading_title"] = "Woovi Pix";
-
 $_["Home"] = "Home";
 $_["Extensions"] = "Extensions";
 
 $_["Save"] = "Save";
 $_["Previous page"] = "Previous page";
 
-$_["Edit Pix extension"] = "Edit Pix extension";
+$_["Edit General Settings"] = "Edit General Settings";
+$_["Edit Pix Settings"] = "Edit Pix Settings";
+$_["Edit Woovi Parcelado Settings"] = "Edit Woovi Parcelado Settings";
 
 $_["Status"] = "Status";
 

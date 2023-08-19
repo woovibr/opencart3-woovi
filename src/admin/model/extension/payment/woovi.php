@@ -62,41 +62,93 @@ class ModelExtensionPaymentWoovi extends Model
         $this->load->model("customer/custom_field");
         $this->load->model("localisation/language");
 
-        // Add same name for all languages.
-        $descriptions = [];
+        // Add translated custom field descriptions.
+        $languages = $this->model_localisation_language->getLanguages();
 
-        $languageIds = array_values(array_map(
-            fn ($language) => intval($language["language_id"]),
-            $this->model_localisation_language->getLanguages()
-        ));
+        $descriptions = [
+            "tax_id" => "CPF/CNPJ",
+            "address_number" => "Address number",
+            "address_complement" => "Address complement",
+        ];
 
-        foreach ($languageIds as $languageId) {
-            $descriptions[$languageId] = [
-                "name" => "CPF/CNPJ",
-            ];
+        $descriptionTranslations = [];
+
+        foreach ($languages as $language) {
+            $languageCode = $language["code"];
+
+            $this->language->load("extension/payment/woovi", $languageCode);
+            $extensionTranslations = $this->language->get($languageCode);
+
+            if (! ($extensionTranslations instanceof Language)) {
+                $extensionTranslations = $this->language;
+            }
+
+            $extensionTranslations = $extensionTranslations->all();
+
+            foreach ($descriptions as $customField => $description) {
+                $languageId = $language["language_id"];
+                $translation = $extensionTranslations[$description] ?? $description;
+
+                $descriptionTranslations[$customField][$languageId] = [
+                    "name" => $translation
+                ];                
+            }
         }
 
         // Use default customer group ID.
         $customerGroupId = $this->config->get("config_customer_group_id");
 
         $taxIdCustomFieldId = $this->model_customer_custom_field->addCustomField([
-            "custom_field_description" => $descriptions,
+            "custom_field_description" => $descriptionTranslations["tax_id"],
             "type" => "text",
             "validation" => self::TAX_ID_CUSTOM_FIELD_VALIDATION_REGEX,
             "location" => "account",
             "status" => 1,
-            "sort_order" => "",
             "value" => "",
+            "sort_order" => 3,
             "custom_field_customer_group" => [
                 [
                     "customer_group_id" => $customerGroupId,
-                    "required" => true,
+                    "required" => 1,
                 ],
             ],
         ]);
 
-        // Store setting.
+        $addressNumberCustomFieldId = $this->model_customer_custom_field->addCustomField([
+            "custom_field_description" => $descriptionTranslations["address_number"],
+            "type" => "text",
+            "validation" => "",
+            "location" => "address",
+            "status" => 1,
+            "value" => "",
+            "sort_order" => 2,
+            "custom_field_customer_group" => [
+                [
+                    "customer_group_id" => $customerGroupId,
+                    "required" => 1,
+                ],
+            ],
+        ]);
+
+        $addressComplementCustomFieldId = $this->model_customer_custom_field->addCustomField([
+            "custom_field_description" => $descriptionTranslations["address_complement"],
+            "type" => "text",
+            "validation" => "",
+            "location" => "address",
+            "status" => 1,
+            "value" => "",
+            "sort_order" => 3,
+            "custom_field_customer_group" => [
+                [
+                    "customer_group_id" => $customerGroupId,
+                ],
+            ],
+        ]);
+
+        // Store settings.
         $settings["payment_woovi_tax_id_custom_field_id"] = $taxIdCustomFieldId;
+        $settings["payment_woovi_address_number_custom_field_id"] = $addressNumberCustomFieldId;
+        $settings["payment_woovi_address_complement_custom_field_id"] = $addressComplementCustomFieldId;
 
         $this->model_setting_setting->editSetting("payment_woovi", $settings);
     }

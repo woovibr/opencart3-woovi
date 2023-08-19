@@ -40,3 +40,7 @@ $_["Open your account now"] = "Open your account now";
 $_["Woovi integration <a href=\"%woovi_opencart_documentation_url%\" target=\"_blank\">documentation</a> with OpenCart"] = "Woovi integration <a href=\"%woovi_opencart_documentation_url%\" target=\"_blank\">documentation</a> with OpenCart";
 
 $_["None"] = "None";
+
+$_["CPF/CNPJ"] = "CPF/CNPJ";
+$_["Address number"] = "Address number";
+$_["Address complement"] = "Address complement";

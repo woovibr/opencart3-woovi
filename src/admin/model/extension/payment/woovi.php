@@ -86,6 +86,7 @@ class ModelExtensionPaymentWoovi extends Model
             "location" => "account",
             "status" => 1,
             "sort_order" => "",
+            "value" => "",
             "custom_field_customer_group" => [
                 [
                     "customer_group_id" => $customerGroupId,
@@ -107,13 +108,37 @@ class ModelExtensionPaymentWoovi extends Model
     {
         $this->load->model("setting/setting");
 
+        $this->installPaymentMethodSettings("woovi", "Pay with Pix");
+        $this->installPaymentMethodSettings("woovi_parcelado", "Pay with Woovi Parcelado");
+        $this->installGeneralSettings();
+    }
+
+    /**
+     * Install General settings.
+     */
+    private function installGeneralSettings(): void
+    {
         $settings = $this->model_setting_setting->getSetting("payment_woovi");
+
+        if (! isset($settings["payment_woovi_app_id"])) {
+            $settings["payment_woovi_app_id"] = "";
+        }
+
+        $this->model_setting_setting->editSetting("payment_woovi", $settings);
+    }
+
+    /**
+     * Install default settings for a payment method.
+     */
+    private function installPaymentMethodSettings(string $group, string $methodTitle): void
+    {
+        $settings = $this->model_setting_setting->getSetting("payment_{$group}");
 
         // Use OpenCart configured order status.
         // Otherwise, use "pending" as default waiting status.
         // On OpenCart installer, the pending status ID is 1:
         // https://github.com/opencart/opencart/blob/e3ae482e66671167b44f86e798f07f8084561117/upload/install/opencart.sql#L1578
-        $orderStatusWhenWaitingId = $settings["payment_woovi_order_status_when_waiting_id"] ?? "";
+        $orderStatusWhenWaitingId = $settings["payment_{$group}_order_status_when_waiting_id"] ?? "";
 
         if (empty($orderStatusWhenWaitingId)) {
             $orderStatusWhenWaitingId = $this->model_setting_setting->getSettingValue("config_order_status_id");
@@ -123,20 +148,28 @@ class ModelExtensionPaymentWoovi extends Model
             $orderStatusWhenWaitingId = $this->findOrderStatusIdByName(["Pendente", "Pending"], 1);
         }
 
-        $settings["payment_woovi_order_status_when_waiting_id"] = $orderStatusWhenWaitingId;
+        $settings["payment_{$group}_order_status_when_waiting_id"] = $orderStatusWhenWaitingId;
 
         // Use "processing" as default paid status.
         // On OpenCart installer, the processing status ID is 2:
         // https://github.com/opencart/opencart/blob/e3ae482e66671167b44f86e798f07f8084561117/upload/install/opencart.sql#L1568
-        if (empty($settings["payment_woovi_order_status_when_paid_id"])) {
-            $settings["payment_woovi_order_status_when_paid_id"] = $this->findOrderStatusIdByName(["Processando", "Processing"], 2);
+        if (empty($settings["payment_{$group}_order_status_when_paid_id"])) {
+            $settings["payment_{$group}_order_status_when_paid_id"] = $this->findOrderStatusIdByName(["Processando", "Processing"], 2);
         }
 
-        if (empty($settings["payment_woovi_payment_method_title"])) {
-            $settings["payment_woovi_payment_method_title"] = "Pix";
+        if (empty($settings["payment_{$group}_payment_method_title"])) {
+            $settings["payment_{$group}_payment_method_title"] = $methodTitle;
         }
 
-        $this->model_setting_setting->editSetting("payment_woovi", $settings);
+        if (empty($settings["payment_{$group}_status"])) {
+            $settings["payment_{$group}_status"] = "0";
+        }
+
+        if (empty($settings["payment_{$group}_notify_customer"])) {
+            $settings["payment_{$group}_notify_customer"] = "0";
+        }
+
+        $this->model_setting_setting->editSetting("payment_{$group}", $settings);
     }
 
     /**

@@ -103,10 +103,13 @@ class ControllerExtensionPaymentWoovi extends Controller
                 "type" => "payment",
             ])
         );
-        
+
         $wooviWebhookCallbackUrl = $this->getWebhookCallbackUrl();
 
         $settings = $this->getCurrentSettings($httpPayload);
+        $customFields = $this->model_customer_custom_field->getCustomFields([
+            "filter_status" => true
+        ]);
 
         $components = $this->makeSettingsPageComponents($settings, $lang);
 
@@ -139,6 +142,9 @@ class ControllerExtensionPaymentWoovi extends Controller
 
             // Settings
             "settings" => $settings,
+
+            // Custom fields
+            "custom_fields" => $customFields,
         ];
     }
 
@@ -337,15 +343,11 @@ class ControllerExtensionPaymentWoovi extends Controller
     private function makeSettingsPageComponents(array $settings, array $lang): array
     {
         $orderStatuses = $this->model_localisation_order_status->getOrderStatuses();
-        $customFields = $this->model_customer_custom_field->getCustomFields([
-            "filter_status" => true
-        ]);
 
         $paymentMethodViewData = [
             "settings" => $settings,
             "lang" => $lang,
             "order_statuses" => $orderStatuses,
-            "custom_fields" => $customFields,
         ];
 
         $pixSettings = $this->load->view("extension/woovi/settings/payment_method", [

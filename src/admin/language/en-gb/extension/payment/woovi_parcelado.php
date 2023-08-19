@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . "/woovi_base.php";
+require_once __DIR__ . "/woovi_common.php";
 
 /** @var array<string, string> $_ */
 

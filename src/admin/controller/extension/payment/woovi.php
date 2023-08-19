@@ -39,6 +39,8 @@ class ControllerExtensionPaymentWoovi extends Controller
         "woovi" => [
             "app_id",
             "tax_id_custom_field_id",
+            "address_number_custom_field_id",
+            "address_complement_custom_field_id",
             ...self::PAYMENT_METHOD_FILLABLE_SETTINGS,
         ],
 

@@ -11,6 +11,7 @@ $_["Previous page"] = "Previous page";
 $_["Edit General Settings"] = "Edit General Settings";
 $_["Edit Pix Settings"] = "Edit Pix Settings";
 $_["Edit Woovi Parcelado Settings"] = "Edit Woovi Parcelado Settings";
+$_["Edit checkout field settings"] = "Edit checkout field settings";
 
 $_["Status"] = "Status";
 
@@ -28,6 +29,8 @@ $_["Notify customer when order is paid?"] = "Notify customer when order is paid?
 
 $_["Which custom field to use for CPF/CNPJ?"] = "Which custom field to use for CPF/CNPJ?";
 $_["Create an custom field here."] = "Create an custom field here.";
+$_["Which custom field to use for the customer address house number?"] = "Which custom field to use for the customer address house number?";
+$_["Which custom field to use for the customer address complement?"] = "Which custom field to use for the customer address complement?";
 
 $_["Warning: You do not have permission to modify Pix settings!"] = "Warning: You do not have permission to modify Pix settings!";
 $_["Success: You have modified Pix settings!"] = "Success: You have modified Pix settings!";

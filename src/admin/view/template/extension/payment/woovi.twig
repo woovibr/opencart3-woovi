@@ -107,7 +107,20 @@
                             </p> 
                         </div>
                     </div>
+                </div>
+            </div>
 
+            <!-- Checkout fields -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <i class="fa fa-pencil"></i>
+
+                        {{ lang["Edit checkout field settings"] }}
+                    </h3>
+                </div>
+
+                <div class="panel-body">
                     <!-- TaxID custom field -->
                     <div class="form-group">
                         <label
@@ -133,10 +146,67 @@
                                     </option>
                                 {% endfor %}
                             </select>
-                            
                             <a href="{{ create_custom_field_route }}">
                                 {{ lang["Create an custom field here."] }}
                             </a>
+                        </div>
+                    </div>
+
+                    <!-- Address number custom field -->
+                    <div class="form-group">
+                        <label
+                            for="input-address-number-custom-field-id"
+                            class="col-sm-2 control-label"
+                        >
+                            {{ lang["Which custom field to use for the customer address house number?"] }}
+                        </label>
+                        <div class="col-sm-10">
+                            <select
+                                name="settings[woovi][address_number_custom_field_id]" 
+                                id="input-address-number-custom-field-id"
+                                class="form-control"
+                            >
+                                <option value="">{{ lang["None"] }}</option>
+
+                                {% for custom_field in custom_fields %}
+                                    <option
+                                        value="{{ custom_field.custom_field_id }}"
+                                        {% if custom_field.custom_field_id == settings["woovi"]["address_number_custom_field_id"] %} selected="selected"
+                                        {% endif %}
+                                    >
+                                        {{ custom_field.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Address complement custom field -->
+                    <div class="form-group">
+                        <label
+                            for="input-address-complement-custom-field-id"
+                            class="col-sm-2 control-label"
+                        >
+                            {{ lang["Which custom field to use for the customer address complement?"] }}
+                        </label>
+                        <div class="col-sm-10">
+                            <select
+                                name="settings[woovi][address_complement_custom_field_id]"
+                                id="input-address-complement-custom-field-id"
+                                class="form-control"
+                            >
+                                <option value="">{{ lang["None"] }}</option>
+
+                                {% for custom_field in custom_fields %}
+                                    <option
+                                        value="{{ custom_field.custom_field_id }}"
+                                        {% if custom_field.custom_field_id == settings["woovi"]["address_complement_custom_field_id"] %} selected="selected"
+                                        {% endif %}
+                                    >
+                                        {{ custom_field.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
                 </div>

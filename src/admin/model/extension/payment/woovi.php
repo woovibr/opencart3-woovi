@@ -7,6 +7,7 @@
  *
  * @property DB $db
  * @property Loader $load
+ * @property Language $language
  * @property ModelCustomerCustomField $model_customer_custom_field
  * @property ModelSettingSetting $model_setting_setting
  * @property ModelSettingEvent $model_setting_event
@@ -77,6 +78,8 @@ class ModelExtensionPaymentWoovi extends Model
             $languageCode = $language["code"];
 
             $this->language->load("extension/payment/woovi", $languageCode);
+
+            /** @var Language|string $extensionTranslations */
             $extensionTranslations = $this->language->get($languageCode);
 
             if (! ($extensionTranslations instanceof Language)) {

@@ -22,8 +22,9 @@ use Psr\Http\Client\ClientExceptionInterface;
  *
  * @phpstan-type CreateChargeResult array{correlationID: string, charge: Charge}
  * @phpstan-type Charge array{paymentLinkUrl: string, qrCodeImage: string, brCode: string, pixKey: string, correlationID: string}
- * @phpstan-type CustomerData array{name: string, email: string, taxID: string, phone?: string}
- * @phpstan-type OpencartOrder array{order_id: string, store_name: string, payment_custom_field: string|array, payment_code: string}
+ * @phpstan-type CustomerAddress array{zipcode: string, city: string, state: string, country: string, street: string, neighborhood: string, number: mixed, complement: mixed}
+ * @phpstan-type CustomerData array{name: string, email: string, taxID: string, phone?: string, address?: CustomerAddress}
+ * @phpstan-type OpencartOrder array{order_id: string, store_name: string, payment_custom_field?: string|array<mixed>, payment_code: string, payment_postcode?: string|int, payment_city?: string, payment_zone_code?: string, shipping_iso_code_2?: string, payment_address_1?: string, payment_address_2?: string}
  */
 class ControllerExtensionPaymentWoovi extends Controller
 {
@@ -96,7 +97,10 @@ class ControllerExtensionPaymentWoovi extends Controller
         $this->load->language("extension/payment/woovi");
 
         $order = $this->getValidatedOpencartOrder();
-        $customerData = $this->getValidatedCustomerData($this->getOpencartCustomer(), $order);
+
+        if (! empty($order)) {
+            $customerData = $this->getValidatedCustomerData($this->getOpencartCustomer(), $order);
+        }
 
         if (empty($customerData)
             || empty($order)
@@ -141,10 +145,37 @@ class ControllerExtensionPaymentWoovi extends Controller
 
         $order = $this->model_checkout_order->getOrder($orderId);
 
-        if (empty($order["order_id"])
-            || ! is_string($order["order_id"])
-            || empty($order["store_name"])
-            || ! is_string($order["store_name"])) {
+        //  * @phpstan-type OpencartOrder array{order_id: string, store_name: string, payment_custom_field?: string|array, payment_code: string, payment_postcode: string|int, payment_city: string, payment_zone_code: string, shipping_iso_code_2: string, payment_address_1: string, payment_address_2: string}
+
+        // $fields = [
+        //     "order_id",
+        //     "store_name",
+        //     "payment_code",
+        //     "payment_postcode",
+        //     "payment_city",
+        //     "payment_zone_code",
+        //     "shipping_iso_code_2",
+        // ];
+
+        $isOrderIdInvalid = empty($order["order_id"])
+            || ! is_string($order["order_id"]);
+
+        $isStoreNameInvalid = empty($order["store_name"])
+            || ! is_string($order["store_name"]);
+
+        $isPaymentCodeInvalid = empty($order["payment_code"])
+            || ! is_string($order["payment_code"]);
+
+        $isPaymentCustomFieldsInvalid = ! empty($order["payment_custom_field"])
+            && ! is_string($order["payment_custom_field"])
+            && ! is_array($order["payment_custom_field"]);
+
+        $isOrderInvalid = $isOrderIdInvalid
+            || $isStoreNameInvalid
+            || $isPaymentCodeInvalid
+            || $isPaymentCustomFieldsInvalid;
+
+        if ($isOrderInvalid) {
             $this->emitError($this->language->get("Invalid order data."));
             return null;
         }
@@ -309,10 +340,6 @@ class ControllerExtensionPaymentWoovi extends Controller
      */
     private function getValidatedCustomerData(array $opencartCustomer, array $orderData): ?array
     {
-        if (empty($orderData)) {
-            return null;
-        }
-
         $firstName = $opencartCustomer["firstname"] ?? "";
         $email = $opencartCustomer["email"] ?? "";
 
@@ -339,9 +366,8 @@ class ControllerExtensionPaymentWoovi extends Controller
         );
 
         $taxID = empty($taxIDFromOpencartCustomer)
-            ? $this->request->post["tax_id"] ?? ""
+            ? $this->normalizeFieldValue($this->request->post["tax_id"] ?? "")
             : $taxIDFromOpencartCustomer;
-        $taxID = $this->normalizeFieldValueAsString($taxID);
 
         if (! ($this->isCPFValid($taxID) ^ $this->isCNPJValid($taxID))) {
             $error = ! empty($taxIDFromOpencartCustomer)
@@ -365,12 +391,12 @@ class ControllerExtensionPaymentWoovi extends Controller
 
         $isWooviParcelado = $orderData["payment_code"] == "payment_woovi";
 
-        if ($isWooviParcelado && ! empty($validationResult["error"])) {
-            $this->emitError($validationResult["error"]);
+        if ($isWooviParcelado && ! empty($addressValidationResult["error"])) {
+            $this->emitError($addressValidationResult["error"]);
             return null;
         }
 
-        if (empty($validationResult["error"])) {
+        if (empty($addressValidationResult["error"])) {
             $customerData["address"] = $address;
         }
 
@@ -381,29 +407,33 @@ class ControllerExtensionPaymentWoovi extends Controller
      * Get customer address.
      *
      * @param OpencartOrder $orderData
-     * @return array<mixed>
+     * @return CustomerAddress
      */
     private function getCustomerAddress(array $orderData): array
     {
         $paymentCustomFields = $orderData["payment_custom_field"] ?? [];
 
+        $number = $this->getCustomFieldValue(
+            $this->config->get("payment_woovi_address_number_custom_field_id"),
+            $paymentCustomFields,
+            "address"
+        );
+
+        $complement = $this->getCustomFieldValue(
+            $this->config->get("payment_woovi_address_complement_custom_field_id"),
+            $paymentCustomFields,
+            "address"
+        );
+
         $customerAddress = [
-            "zipcode" => preg_replace("/\D/", "", $orderData["payment_postcode"] ?? ""),
+            "zipcode" => preg_replace("/\D/", "", strval($orderData["payment_postcode"] ?? "")) ?? "",
             "city" =>  $orderData["payment_city"] ?? "",
             "state" => $orderData["payment_zone_code"] ?? "",
             "country" => $orderData["shipping_iso_code_2"] ?? "",
             "street" => $orderData["payment_address_1"] ?? "",
             "neighborhood" => $orderData["payment_address_2"] ?? "",
-            "number" => $this->getCustomFieldValue(
-                $this->config->get("payment_woovi_address_number_custom_field_id"),
-                $paymentCustomFields,
-                "address"
-            ),
-            "complement" => $this->getCustomFieldValue(
-                $this->config->get("payment_woovi_address_complement_custom_field_id"),
-                $paymentCustomFields,
-                "address"
-            ),
+            "number" => $number,
+            "complement" => $complement,
         ];
 
         return $customerAddress;
@@ -412,9 +442,10 @@ class ControllerExtensionPaymentWoovi extends Controller
     /**
      * Validate customer address.
      *
+     * @param CustomerAddress $address
      * @return array{error?: string}
      */
-    private function validateCustomerAddress(): array
+    private function validateCustomerAddress(array $address): array
     {
         if (empty($address["zipcode"])) {
             $error = "It is mandatory to inform the zipcode in the address.";
@@ -424,8 +455,7 @@ class ControllerExtensionPaymentWoovi extends Controller
             $error = "It is mandatory to inform the state in the address.";
         } elseif (empty($address["country"])) {
             $error = "It is mandatory to inform the country in the address.";
-        }
-        if (empty($address["street"])) {
+        } elseif (empty($address["street"])) {
             $error = "It is mandatory to inform the street in the address.";
         } elseif (empty($address["number"])) {
             $error = "It is mandatory to inform the house number in the address.";
@@ -474,39 +504,56 @@ class ControllerExtensionPaymentWoovi extends Controller
     /**
      * Get the value of a custom field.
      *
-     * @param string|int $customFieldId
-     * @param array<mixed>|string $customFields
+     * @param mixed $customFieldId
+     * @param mixed $customFields
      * @param string $customFieldLocation
+     * @return string
      */
-    private function getCustomFieldValue($customFieldId, $customFields, string $customFieldLocation)
+    private function getCustomFieldValue($customFieldId, $customFields, string $customFieldLocation): string
     {
         if (is_string($customFields)) {
             $customFields = json_decode($customFields, true);
         }
 
         if (! is_array($customFields)) {
-            return null;
+            return "";
         }
+
+        $customFieldId = $this->normalizeFieldValue($customFieldId);
 
         if (! empty($customFields[$customFieldLocation][$customFieldId])) {
-            return $customFields[$customFieldLocation][$customFieldId];
+            $value = $customFields[$customFieldLocation][$customFieldId];
+        } else if (! empty($customFields[$customFieldId])) {
+            $value = $customFields[$customFieldId];
+        } else {
+            $value = "";
         }
 
-        if (! empty($customFields[$customFieldId])) {
-            return $customFields[$customFieldId];
+        return $this->normalizeFieldValue($value);
+    }
+
+    /**
+     * Normalize field value as string.
+     * 
+     * @param mixed $value
+     */
+    private function normalizeFieldValue($value): string
+    {
+        if (is_string($value) || is_int($value)) {
+            return trim(strval($value));
         }
 
-        return null;
+        return "";
     }
 
     /**
      * Check if a custom field exists.
      *
-     * @param string|int $customFieldId
-     * @param array<mixed>|string $customFields
+     * @param mixed $customFieldId
+     * @param mixed $customFields
      * @param string $customFieldLocation
      */
-    private function hasCustomField($customFieldId, $customFields, string $customFieldLocation)
+    private function hasCustomField($customFieldId, $customFields, string $customFieldLocation): bool
     {
         if (is_string($customFields)) {
             $customFields = json_decode($customFields, true);
@@ -515,6 +562,8 @@ class ControllerExtensionPaymentWoovi extends Controller
         if (! is_array($customFields)) {
             return false;
         }
+
+        $customFieldId = $this->normalizeFieldValue($customFieldId);
 
         if (array_key_exists($customFieldId, $customFields[$customFieldLocation] ?? [])) {
             return true;
@@ -525,14 +574,6 @@ class ControllerExtensionPaymentWoovi extends Controller
         }
 
         return false;
-    }
-
-    /**
-     * Normalize field value as string.
-     */
-    private function normalizeFieldValueAsString($value): string
-    {
-        return trim(strval($value));
     }
 
     /**

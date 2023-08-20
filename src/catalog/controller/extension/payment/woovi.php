@@ -63,7 +63,7 @@ class ControllerExtensionPaymentWoovi extends Controller
             $opencartCustomerCustomFields,
             "account"
         ));
-        
+
         $showAddressNumberInput = empty($this->getCustomFieldValue(
             $this->config->get("payment_woovi_address_number_custom_field_id"),
             $paymentCustomFields,
@@ -309,7 +309,9 @@ class ControllerExtensionPaymentWoovi extends Controller
      */
     private function getValidatedCustomerData(array $opencartCustomer, array $orderData): ?array
     {
-        if (empty($orderData)) return null;
+        if (empty($orderData)) {
+            return null;
+        }
 
         $firstName = $opencartCustomer["firstname"] ?? "";
         $email = $opencartCustomer["email"] ?? "";
@@ -377,7 +379,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Get customer address.
-     * 
+     *
      * @param OpencartOrder $orderData
      * @return array<mixed>
      */
@@ -409,20 +411,31 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Validate customer address.
-     * 
+     *
      * @return array{error?: string}
      */
     private function validateCustomerAddress(): array
     {
-        if (empty($address["zipcode"])) $error = "It is mandatory to inform the zipcode in the address.";
-        else if (empty($address["city"])) $error = "It is mandatory to inform the city in the address.";
-        else if (empty($address["state"])) $error = "It is mandatory to inform the state in the address.";
-        else if (empty($address["country"])) $error = "It is mandatory to inform the country in the address.";
-        if (empty($address["street"])) $error = "It is mandatory to inform the street in the address.";
-        else if (empty($address["number"])) $error = "It is mandatory to inform the house number in the address.";
-        else if (empty($address["neighborhood"])) $error = "It is mandatory to inform the neighborhood in the address.";
+        if (empty($address["zipcode"])) {
+            $error = "It is mandatory to inform the zipcode in the address.";
+        } elseif (empty($address["city"])) {
+            $error = "It is mandatory to inform the city in the address.";
+        } elseif (empty($address["state"])) {
+            $error = "It is mandatory to inform the state in the address.";
+        } elseif (empty($address["country"])) {
+            $error = "It is mandatory to inform the country in the address.";
+        }
+        if (empty($address["street"])) {
+            $error = "It is mandatory to inform the street in the address.";
+        } elseif (empty($address["number"])) {
+            $error = "It is mandatory to inform the house number in the address.";
+        } elseif (empty($address["neighborhood"])) {
+            $error = "It is mandatory to inform the neighborhood in the address.";
+        }
 
-        if (! empty($error)) return ["error" => $error];
+        if (! empty($error)) {
+            return ["error" => $error];
+        }
 
         return [];
     }
@@ -458,7 +471,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Get the value of a custom field.
-     * 
+     *
      * @param string|int $customFieldId
      * @param array<mixed>|string $customFields
      * @param string $customFieldLocation
@@ -486,7 +499,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Check if a custom field exists.
-     * 
+     *
      * @param string|int $customFieldId
      * @param array<mixed>|string $customFields
      * @param string $customFieldLocation
@@ -579,8 +592,8 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Load order confirmation view.
-     * 
-     * @param array<mixed> $viewData 
+     *
+     * @param array<mixed> $viewData
      */
     private function loadCheckoutConfirmationView(array $viewData = []): string
     {

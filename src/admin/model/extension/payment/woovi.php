@@ -91,7 +91,7 @@ class ModelExtensionPaymentWoovi extends Model
 
                 $descriptionTranslations[$customField][$languageId] = [
                     "name" => $translation
-                ];                
+                ];
             }
         }
 

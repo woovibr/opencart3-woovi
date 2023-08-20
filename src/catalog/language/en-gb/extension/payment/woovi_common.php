@@ -18,3 +18,11 @@ $_["Address complement"] = "Address complement";
 $_["An error occurred while creating the Pix charge."] = "An error occurred while creating the Pix charge.";
 
 $_["Missing customer data on checkout."] = "Missing customer data on checkout.";
+
+$_["It is mandatory to inform the zipcode in the address."] = "It is mandatory to inform the zipcode in the address.";
+$_["It is mandatory to inform the city in the address."] = "It is mandatory to inform the city in the address.";
+$_["It is mandatory to inform the state in the address."] = "It is mandatory to inform the state in the address.";
+$_["It is mandatory to inform the country in the address."] = "It is mandatory to inform the country in the address.";
+$_["It is mandatory to inform the street in the address."] = "It is mandatory to inform the street in the address.";
+$_["It is mandatory to inform the house number in the address."] = "It is mandatory to inform the house number in the address.";
+$_["It is mandatory to inform the neighborhood in the address."] = "It is mandatory to inform the neighborhood in the address.";

@@ -434,6 +434,8 @@ class ControllerExtensionPaymentWoovi extends Controller
         }
 
         if (! empty($error)) {
+            $error = $this->language->get($error);
+
             return ["error" => $error];
         }
 

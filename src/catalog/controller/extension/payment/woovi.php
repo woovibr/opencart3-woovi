@@ -523,7 +523,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
         if (! empty($customFields[$customFieldLocation][$customFieldId])) {
             $value = $customFields[$customFieldLocation][$customFieldId];
-        } else if (! empty($customFields[$customFieldId])) {
+        } elseif (! empty($customFields[$customFieldId])) {
             $value = $customFields[$customFieldId];
         } else {
             $value = "";
@@ -534,7 +534,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Normalize field value as string.
-     * 
+     *
      * @param mixed $value
      */
     private function normalizeFieldValue($value): string

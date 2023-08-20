@@ -12,6 +12,8 @@ $_["CPF/CNPJ invalid! Change the CPF/CNPJ field in your account settings page or
 $_["CPF/CNPJ invalid!"] = "CPF/CNPJ invalid!";
 
 $_["CPF/CNPJ"] = "CPF/CNPJ";
+$_["Address number"] = "Address number";
+$_["Address complement"] = "Address complement";
 
 $_["An error occurred while creating the Pix charge."] = "An error occurred while creating the Pix charge.";
 

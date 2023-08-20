@@ -160,8 +160,14 @@ class ModelExtensionPaymentWoovi extends Model
     {
         $this->load->model("setting/setting");
 
-        $this->installPaymentMethodSettings("woovi", "Pay with Pix");
-        $this->installPaymentMethodSettings("woovi_parcelado", "Pay with Woovi Parcelado");
+        $this->installPaymentMethodSettings(
+            "woovi",
+            $this->language->get("Pay with Pix")
+        );
+        $this->installPaymentMethodSettings(
+            "woovi_parcelado",
+            $this->language->get("Pay with Woovi Parcelado")
+        );
         $this->installGeneralSettings();
     }
 

@@ -321,7 +321,7 @@ class ControllerExtensionPaymentWoovi extends Controller
             [
                 "text" => $this->language->get("heading_title"),
                 "href" => $this->url->link(
-                    "extension/woovi/payment/woovi",
+                    "extension/payment/woovi",
                     http_build_query(
                         [
                             "user_token" => $this->session->data["user_token"],

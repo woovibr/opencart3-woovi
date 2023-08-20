@@ -11,7 +11,7 @@ $_["Previous page"] = "Página anterior";
 $_["Edit General Settings"] = "Editar configurações gerais";
 $_["Edit Pix Settings"] = "Edit configurações do Pix";
 $_["Edit Woovi Parcelado Settings"] = "Editar configurações do Woovi Parcelado";
-$_["Edit checkout field settings"] = "Editar configurações de campo do checkout";
+$_["Edit checkout field settings"] = "Editar configurações dos campos do checkout";
 
 $_["Status"] = "Status";
 

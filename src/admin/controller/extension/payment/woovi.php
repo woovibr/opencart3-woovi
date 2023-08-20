@@ -16,7 +16,7 @@
  * @property ModelLocalisationOrderStatus $model_localisation_order_status
  * @property ModelSettingSetting $model_setting_setting
  * @property ModelExtensionPaymentWoovi $model_extension_payment_woovi
- * 
+ *
  * @phpstan-type SaveResult array{success?: string, warning?: string}
  */
 class ControllerExtensionPaymentWoovi extends Controller
@@ -71,7 +71,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
         if ($this->isHttpPost()) {
             $saveResult = $this->save($httpPayload);
-        }        
+        }
 
         $viewData = $this->prepareViewData($saveResult, $httpPayload);
 
@@ -82,7 +82,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Prepare view data.
-     * 
+     *
      * @param SaveResult $saveResult
      * @param array<mixed> $httpPayload
      * @return array<string, string>
@@ -182,7 +182,7 @@ class ControllerExtensionPaymentWoovi extends Controller
      * @return SaveResult
      */
     private function save(array $httpPayload): array
-    {   
+    {
         $validationResult = $this->validateSaveRequest();
 
         if (! empty($validationResult)) {
@@ -200,7 +200,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Validate save request.
-     * 
+     *
      * @return SaveResult
      */
     private function validateSaveRequest(): array
@@ -216,7 +216,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Get updated settings from HTTP POSTed data.
-     * 
+     *
      * @param array<mixed> $httpPayload
      * @return array<mixed>
      */
@@ -264,7 +264,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Update settings.
-     * 
+     *
      * @param array<mixed> $settings
      */
     private function updateSettings(array $settings): void
@@ -393,7 +393,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Get HTTP POSTed payload.
-     * 
+     *
      * @return array<mixed>
      */
     private function getHttpPostPayload(): array
@@ -406,7 +406,7 @@ class ControllerExtensionPaymentWoovi extends Controller
 
     /**
      * Get only specified values from array.
-     * 
+     *
      * @param array<mixed> $arr
      * @return array<mixed>
      */

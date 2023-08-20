@@ -14,7 +14,7 @@ class ModelExtensionPaymentWooviWebhooks extends Model
     {
         $storeId = (int) $this->db->escape($storeId);
         $newAppId = $this->db->escape($newAppId);
-        
+
         $query = $this->db->query("
             SELECT `value` FROM " . DB_PREFIX . "setting
             WHERE store_id = '" . $storeId . "'

@@ -142,12 +142,39 @@ class ExtensionCommands extends BaseTasks
         $extractGitArchive = $this->taskExtract($gitArchivePath)
             ->to($changeToWorkFolder->getPath());
 
+        // Fix Composer
+        $composerConfigPath = __DIR__ . "/../../../../composer.json";
+
+        $composerConfig = json_decode(file_get_contents($composerConfigPath), true);
+
+        $fixPath = fn (string $path) => str_replace(
+            "src/system/library/woovi",
+            "system/library/woovi",
+            $path
+        );
+
+        foreach ($composerConfig["autoload"]["psr-4"] as &$path) {
+            $path = $fixPath($path);
+        }
+
+        $composerConfig["config"]["vendor-dir"] = $fixPath($composerConfig["config"]["vendor-dir"]);
+
+        $composerConfig = json_encode($composerConfig);
+
+        $fixComposerConfig = $this->taskWriteToFile("./src/composer.json")
+            ->text($composerConfig);
+
+        $removeComposerConfig = $this->taskFilesystemStack()
+            ->remove("./src/composer.json")
+            ->remove("./src/composer.lock");
+
         // Install Composer production dependencies.
         $composerInstall = $this->taskComposerInstall()
             ->optimizeAutoloader()
             ->noDev()
             ->noAnsi()
             ->noInteraction()
+            ->workingDir("src")
             ->noScripts();
 
         // Enable production environment using this Robo instance.
@@ -163,7 +190,9 @@ class ExtensionCommands extends BaseTasks
             $gitArchive,
             $extractGitArchive,
             $changeToWorkFolder,
+            $fixComposerConfig,
             $composerInstall,
+            $removeComposerConfig,
         ]);
 
         $collection->addCode($enableEnvironment);

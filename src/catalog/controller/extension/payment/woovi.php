@@ -23,7 +23,7 @@ use Psr\Http\Client\ClientExceptionInterface;
  * @phpstan-type CreateChargeResult array{correlationID: string, charge: Charge}
  * @phpstan-type Charge array{paymentLinkUrl: string, qrCodeImage: string, brCode: string, pixKey: string, correlationID: string}
  * @phpstan-type CustomerData array{name: string, email: string, taxID: string, phone?: string}
- * @phpstan-type OpencartOrder array{order_id: string, store_name: string, payment_custom_field: string|array}
+ * @phpstan-type OpencartOrder array{order_id: string, store_name: string, payment_custom_field: string|array, payment_code: string}
  */
 class ControllerExtensionPaymentWoovi extends Controller
 {
@@ -95,8 +95,8 @@ class ControllerExtensionPaymentWoovi extends Controller
         $this->load->model("checkout/order");
         $this->load->language("extension/payment/woovi");
 
-        $customerData = $this->getValidatedCustomerData($this->getOpencartCustomer());
         $order = $this->getValidatedOpencartOrder();
+        $customerData = $this->getValidatedCustomerData($this->getOpencartCustomer(), $order);
 
         if (empty($customerData)
             || empty($order)
@@ -304,10 +304,13 @@ class ControllerExtensionPaymentWoovi extends Controller
      * Gets the consumer data or returns null if not possible.
      *
      * @param array<mixed> $opencartCustomer
+     * @param OpencartOrder $orderData
      * @return ?CustomerData
      */
-    private function getValidatedCustomerData(array $opencartCustomer): ?array
+    private function getValidatedCustomerData(array $opencartCustomer, array $orderData): ?array
     {
+        if (empty($orderData)) return null;
+
         $firstName = $opencartCustomer["firstname"] ?? "";
         $email = $opencartCustomer["email"] ?? "";
 
@@ -355,7 +358,73 @@ class ControllerExtensionPaymentWoovi extends Controller
             $customerData["phone"] = $phone;
         }
 
+        $address = $this->getCustomerAddress($orderData);
+        $addressValidationResult = $this->validateCustomerAddress($address);
+
+        $isWooviParcelado = $orderData["payment_code"] == "payment_woovi";
+
+        if ($isWooviParcelado && ! empty($validationResult["error"])) {
+            $this->emitError($validationResult["error"]);
+            return null;
+        }
+
+        if (empty($validationResult["error"])) {
+            $customerData["address"] = $address;
+        }
+
         return $customerData;
+    }
+
+    /**
+     * Get customer address.
+     * 
+     * @param OpencartOrder $orderData
+     * @return array<mixed>
+     */
+    private function getCustomerAddress(array $orderData): array
+    {
+        $paymentCustomFields = $orderData["payment_custom_field"] ?? [];
+
+        $customerAddress = [
+            "zipcode" => preg_replace("/\D/", "", $orderData["payment_postcode"] ?? ""),
+            "city" =>  $orderData["payment_city"] ?? "",
+            "state" => $orderData["payment_zone_code"] ?? "",
+            "country" => $orderData["shipping_iso_code_2"] ?? "",
+            "street" => $orderData["payment_address_1"] ?? "",
+            "neighborhood" => $orderData["payment_address_2"] ?? "",
+            "number" => $this->getCustomFieldValue(
+                $this->config->get("payment_woovi_address_number_custom_field_id"),
+                $paymentCustomFields,
+                "address"
+            ),
+            "complement" => $this->getCustomFieldValue(
+                $this->config->get("payment_woovi_address_complement_custom_field_id"),
+                $paymentCustomFields,
+                "address"
+            ),
+        ];
+
+        return $customerAddress;
+    }
+
+    /**
+     * Validate customer address.
+     * 
+     * @return array{error?: string}
+     */
+    private function validateCustomerAddress(): array
+    {
+        if (empty($address["zipcode"])) $error = "It is mandatory to inform the zipcode in the address.";
+        else if (empty($address["city"])) $error = "It is mandatory to inform the city in the address.";
+        else if (empty($address["state"])) $error = "It is mandatory to inform the state in the address.";
+        else if (empty($address["country"])) $error = "It is mandatory to inform the country in the address.";
+        if (empty($address["street"])) $error = "It is mandatory to inform the street in the address.";
+        else if (empty($address["number"])) $error = "It is mandatory to inform the house number in the address.";
+        else if (empty($address["neighborhood"])) $error = "It is mandatory to inform the neighborhood in the address.";
+
+        if (! empty($error)) return ["error" => $error];
+
+        return [];
     }
 
     /**

@@ -12,7 +12,7 @@ class ModelExtensionPaymentWooviWebhooks extends Model
      */
     public function configureAppId(string $newAppId, int $storeId = 0): void
     {
-        $storeId = (int) $this->db->escape($storeId);
+        $storeId = $this->db->escape(strval($storeId));
         $newAppId = $this->db->escape($newAppId);
 
         $query = $this->db->query("
@@ -21,7 +21,7 @@ class ModelExtensionPaymentWooviWebhooks extends Model
                 AND `key` = 'payment_woovi_app_id'
         ");
 
-        if (! $query->num_rows) {
+        if (isset($query->num_rows) && ! $query->num_rows) {
             $this->db->query("
                 INSERT INTO `" . DB_PREFIX . "setting`
                 SET `store_id` = '" . $storeId . "',

@@ -408,6 +408,7 @@ class ControllerExtensionPaymentWoovi extends Controller
      * Get only specified values from array.
      *
      * @param array<mixed> $arr
+     * @param array<mixed> $keys
      * @return array<mixed>
      */
     private function filterArrayByKeys(array $arr, array $keys): array

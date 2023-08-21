@@ -7,7 +7,6 @@
  *
  * @property DB $db
  * @property Loader $load
- * @property Language $language
  * @property ModelCustomerCustomField $model_customer_custom_field
  * @property ModelSettingSetting $model_setting_setting
  * @property ModelSettingEvent $model_setting_event
@@ -20,7 +19,7 @@ class ModelExtensionPaymentWoovi extends Model
     /**
      * Current extension version.
      */
-    public const CURRENT_VERSION = "1.0.1";
+    public const CURRENT_VERSION = "1.0.0";
 
     /**
      * Regex for validating CPF/CNPJ field format.
@@ -78,8 +77,6 @@ class ModelExtensionPaymentWoovi extends Model
             $languageCode = $language["code"];
 
             $this->language->load("extension/payment/woovi", $languageCode);
-
-            /** @var Language|string $extensionTranslations */
             $extensionTranslations = $this->language->get($languageCode);
 
             if (! ($extensionTranslations instanceof Language)) {
@@ -163,14 +160,8 @@ class ModelExtensionPaymentWoovi extends Model
     {
         $this->load->model("setting/setting");
 
-        $this->installPaymentMethodSettings(
-            "woovi",
-            $this->language->get("Pay with Pix")
-        );
-        $this->installPaymentMethodSettings(
-            "woovi_parcelado",
-            $this->language->get("Pay with Woovi Parcelado")
-        );
+        $this->installPaymentMethodSettings("woovi", "Pay with Pix");
+        $this->installPaymentMethodSettings("woovi_parcelado", "Pay with Woovi Parcelado");
         $this->installGeneralSettings();
     }
 

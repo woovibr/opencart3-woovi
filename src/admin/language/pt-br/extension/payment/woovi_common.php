@@ -44,6 +44,3 @@ $_["None"] = "None";
 $_["CPF/CNPJ"] = "CPF/CNPJ";
 $_["Address number"] = "Número do endereço";
 $_["Address complement"] = "Complemento do endereço";
-
-$_["Pay with Pix"] = "Pagar com Pix";
-$_["Pay with Woovi Parcelado"] = "Pagar com Woovi Parcelado";

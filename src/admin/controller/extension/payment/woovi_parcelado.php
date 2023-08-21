@@ -2,8 +2,6 @@
 
 /**
  * Settings controller for Woovi Parcelado.
- *
- * @property Loader $load
  */
 class ControllerExtensionPaymentWooviParcelado extends Controller
 {

@@ -18,11 +18,3 @@ $_["Address complement"] = "Complemento do endereço";
 $_["An error occurred while creating the Pix charge."] = "Ocorreu um erro ao criar a cobrança do Pix.";
 
 $_["Missing customer data on checkout."] = "Há falta de dados do cliente no checkout.";
-
-$_["It is mandatory to inform the zipcode in the address."] = "É obrigatório informar o CEP no endereço.";
-$_["It is mandatory to inform the city in the address."] = "É obrigatório informar a cidade no endereço.";
-$_["It is mandatory to inform the state in the address."] = "É obrigatório informar o estado no endereço.";
-$_["It is mandatory to inform the country in the address."] = "É obrigatório informar o país no endereço.";
-$_["It is mandatory to inform the street in the address."] = "É obrigatório informar a rua no endereço.";
-$_["It is mandatory to inform the house number in the address."] = "É obrigatório informar o número da casa no endereço.";
-$_["It is mandatory to inform the neighborhood in the address."] = "É obrigatório informar o bairro no endereço.";

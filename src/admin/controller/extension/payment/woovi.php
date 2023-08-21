@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Settings page for Woovi extension.
+ * An base settings controller for Pix and Parcelado payment methods.
  *
  * @property Loader $load
  * @property Document $document
@@ -16,37 +16,86 @@
  * @property ModelLocalisationOrderStatus $model_localisation_order_status
  * @property ModelSettingSetting $model_setting_setting
  * @property ModelExtensionPaymentWoovi $model_extension_payment_woovi
+ *
+ * @phpstan-type SaveResult array{success?: string, warning?: string}
  */
 class ControllerExtensionPaymentWoovi extends Controller
 {
     /**
-     * Available setting keys.
+     * Fillable settings for a payment method.
      */
-    private const FILLABLE_SETTINGS = [
-        "payment_woovi_status",
-        "payment_woovi_app_id",
-        "payment_woovi_order_status_when_waiting_id",
-        "payment_woovi_order_status_when_paid_id",
-        "payment_woovi_notify_customer",
-        "payment_woovi_tax_id_custom_field_id",
-        "payment_woovi_payment_method_title",
+    public const PAYMENT_METHOD_FILLABLE_SETTINGS = [
+        "status",
+        "order_status_when_waiting_id",
+        "order_status_when_paid_id",
+        "notify_customer",
+        "payment_method_title",
     ];
+
+    /**
+     * Fillable settings.
+     */
+    public const FILLABLE_SETTINGS = [
+        "woovi" => [
+            "app_id",
+            "tax_id_custom_field_id",
+            "address_number_custom_field_id",
+            "address_complement_custom_field_id",
+            ...self::PAYMENT_METHOD_FILLABLE_SETTINGS,
+        ],
+
+        "woovi_parcelado" => self::PAYMENT_METHOD_FILLABLE_SETTINGS,
+    ];
+
+    /**
+     * Load dependencies.
+     */
+    private function load(): void
+    {
+        $this->load->language("extension/payment/woovi");
+        $this->load->model("localisation/order_status");
+        $this->load->model("customer/custom_field");
+        $this->load->model("setting/setting");
+    }
 
     /**
      * Show or save settings.
      */
     public function index(): void
     {
-        $saveResult = $this->save();
+        $this->load();
 
-        $this->load->language("extension/payment/woovi");
+        $httpPayload = $this->getHttpPostPayload();
 
+        $saveResult = [];
+
+        if ($this->isHttpPost()) {
+            $saveResult = $this->save($httpPayload);
+        }
+
+        $viewData = $this->prepareViewData($saveResult, $httpPayload);
+
+        $this->response->setOutput(
+            $this->load->view("extension/payment/woovi", $viewData)
+        );
+    }
+
+    /**
+     * Prepare view data.
+     *
+     * @param SaveResult $saveResult
+     * @param array<mixed> $httpPayload
+     * @return array<string, string>
+     */
+    private function prepareViewData(array $saveResult, array $httpPayload): array
+    {
         $this->document->setTitle($this->language->get("heading_title"));
+
+        $lang = $this->language->all();
 
         $tokenQuery = http_build_query([
             "user_token" => $this->session->data["user_token"],
         ]);
-
         $marketplaceLink = $this->url->link(
             "marketplace/extension",
             http_build_query([
@@ -55,110 +104,177 @@ class ControllerExtensionPaymentWoovi extends Controller
             ])
         );
 
-        $this->load->model("localisation/order_status");
-        $this->load->model("customer/custom_field");
+        $wooviWebhookCallbackUrl = $this->getWebhookCallbackUrl();
 
-        $orderStatuses = $this->model_localisation_order_status->getOrderStatuses();
+        $settings = $this->getCurrentSettings($httpPayload);
         $customFields = $this->model_customer_custom_field->getCustomFields([
             "filter_status" => true
         ]);
 
-        $wooviWebhookCallbackUrl = str_replace(
-            HTTP_SERVER,
-            HTTP_CATALOG,
-            $this->url->link("extension/woovi/payment/woovi_webhooks")
-        );
+        $components = $this->makeSettingsPageComponents($settings, $lang);
 
-        $settings = $this->getCurrentSettings();
-
-        $this->response->setOutput($this->load->view("extension/payment/woovi", [
+        return [
+            // Breadcrumbs
             "breadcrumbs" => $this->makeBreadcrumbs($marketplaceLink),
 
             // Alerts
             "woovi_warning" => $saveResult["warning"] ?? null,
             "woovi_success" => $saveResult["success"] ?? null,
 
-            // Urls
+            // URLs
             "woovi_register_account_url" => "https://app.woovi.com/register",
             "woovi_webhook_callback_url" => $wooviWebhookCallbackUrl,
             "woovi_opencart_documentation_url" => "https://developers.woovi.com/docs/ecommerce/opencart/opencart3-extension",
 
             // Routes
-            "save_route" => $this->url->link("extension/payment/woovi", $tokenQuery),
+            "save_route" => $this->url->link(
+                "extension/payment/woovi",
+                $tokenQuery
+            ),
             "previous_route" => $marketplaceLink,
             "create_custom_field_route" => $this->url->link("customer/custom_field", $tokenQuery),
 
-            "order_statuses" => $orderStatuses,
-            "custom_fields" => $customFields,
-
             // Components
-            "components" => $this->makeSettingsPageComponents(),
+            "components" => $components,
 
-            // Transalations
-            "lang" => $this->language->all(),
-        ] + $settings));
+            // Translations
+            "lang" => $lang,
+
+            // Settings
+            "settings" => $settings,
+
+            // Custom fields
+            "custom_fields" => $customFields,
+        ];
     }
 
     /**
      * Get available settings, from request or config table.
      *
-     * @return array<array-key, mixed>
+     * @param array<mixed> $httpPayload The available HTTP POST payload.
+     * @return array<mixed>
      */
-    private function getCurrentSettings(): array
+    private function getCurrentSettings(array $httpPayload): array
     {
         $settings = [];
 
-        foreach (self::FILLABLE_SETTINGS as $settingName) {
-            $settings[$settingName] = $this->getConfig($settingName);
+        foreach (self::FILLABLE_SETTINGS as $groupName => $group) {
+            foreach ($group as $settingName) {
+                $configKey = "payment_" . $groupName . "_" . $settingName;
+
+                if (isset($httpPayload["settings"][$groupName][$settingName])) {
+                    $setting = $httpPayload["settings"][$groupName][$settingName];
+                } else {
+                    $setting = $this->config->get($configKey);
+                }
+
+                $settings[$groupName][$settingName] = $setting;
+            }
         }
 
         return $settings;
     }
 
     /**
-     * Get an config key from request or config table.
-     *
-     * @return mixed
-     */
-    private function getConfig(string $key)
-    {
-        if (isset($this->request->post[$key])) {
-            return $this->request->post[$key];
-        }
-
-        return $this->config->get($key);
-    }
-
-    /**
      * Save settings from HTTP POSTed payload.
      *
-     * @return array{success?: string, warning?: string}
+     * @param array<mixed> $httpPayload
+     * @return SaveResult
      */
-    private function save(): array
+    private function save(array $httpPayload): array
     {
-        if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-            return [];
+        $validationResult = $this->validateSaveRequest();
+
+        if (! empty($validationResult)) {
+            return $validationResult;
         }
 
-        $this->load->language("extension/payment/woovi");
+        $updatedSettings = $this->getUpdatedSettings($httpPayload);
 
-        if (! $this->user->hasPermission("modify", "extension/extension/payment")) {
-            return ["warning" => "Warning: You do not have permission to modify Pix settings!"];
-        }
-
-        $this->load->model("setting/setting");
-
-        $updatedSettings = array_filter(
-            $this->request->post,
-            fn (string $key) => in_array($key, self::FILLABLE_SETTINGS),
-            ARRAY_FILTER_USE_KEY
-        );
-
-        $this->model_setting_setting->editSetting("payment_woovi", $updatedSettings);
+        $this->updateSettings($updatedSettings);
 
         return [
             "success" => $this->language->get("Success: You have modified Pix settings!"),
         ];
+    }
+
+    /**
+     * Validate save request.
+     *
+     * @return SaveResult
+     */
+    private function validateSaveRequest(): array
+    {
+        $canUserModifyExtension = $this->user->hasPermission("modify", "extension/extension/payment");
+
+        if (! $canUserModifyExtension) {
+            return ["warning" => "Warning: You do not have permission to modify Pix settings!"];
+        }
+
+        return [];
+    }
+
+    /**
+     * Get updated settings from HTTP POSTed data.
+     *
+     * @param array<mixed> $httpPayload
+     * @return array<mixed>
+     */
+    private function getUpdatedSettings(array $httpPayload): array
+    {
+        $settingsFromRequest = $httpPayload["settings"] ?? [];
+
+        if (! is_array($settingsFromRequest)) {
+            $settingsFromRequest = [];
+        }
+
+        // Get only fillable settings.
+        $settings = $this->filterArrayByKeys($settingsFromRequest, array_keys(self::FILLABLE_SETTINGS));
+
+        $normalizedSettings = [];
+
+        // Normalize and filter settings.
+        foreach ($settings as $settingName => $settingValue) {
+            $fillableSettings = self::FILLABLE_SETTINGS[$settingName];
+
+            $settingName = "payment_" . $settingName;
+
+            if (is_array($fillableSettings)) {
+                if (! is_array($settingValue)) {
+                    $settingValue = [];
+                }
+
+                $nestedSettings = $this->filterArrayByKeys($settingValue, $fillableSettings);
+
+                $normalizedNestedSettings = [];
+
+                foreach ($nestedSettings as $nestedSettingName => $nestedSettingValue) {
+                    $nestedSettingName = $settingName . "_" . $nestedSettingName;
+                    $normalizedNestedSettings[$nestedSettingName] = $nestedSettingValue;
+                }
+
+                $settingValue = $normalizedNestedSettings;
+            }
+
+            $normalizedSettings[$settingName] = $settingValue;
+        }
+
+        return $normalizedSettings;
+    }
+
+    /**
+     * Update settings.
+     *
+     * @param array<mixed> $settings
+     */
+    private function updateSettings(array $settings): void
+    {
+        foreach ($settings as $configPrefix => $settings) {
+            $this->model_setting_setting->editSetting(
+                $configPrefix,
+                $settings,
+            );
+        }
     }
 
     /**
@@ -220,14 +336,87 @@ class ControllerExtensionPaymentWoovi extends Controller
     /**
      * Render components for settings page.
      *
+     * @param array<mixed> $settings
+     * @param array<mixed> $lang
      * @return array{header: string|mixed, column_left: string|mixed, footer: string|mixed}
      */
-    private function makeSettingsPageComponents(): array
+    private function makeSettingsPageComponents(array $settings, array $lang): array
     {
+        $orderStatuses = $this->model_localisation_order_status->getOrderStatuses();
+
+        $paymentMethodViewData = [
+            "settings" => $settings,
+            "lang" => $lang,
+            "order_statuses" => $orderStatuses,
+        ];
+
+        $pixSettings = $this->load->view("extension/woovi/settings/payment_method", [
+            "lang_panel_heading_title" => $this->language->get("Edit Pix Settings"),
+            "setting_group" => "woovi",
+        ] + $paymentMethodViewData);
+
+        $parceladoSettings = $this->load->view("extension/woovi/settings/payment_method", [
+            "lang_panel_heading_title" => $this->language->get("Edit Woovi Parcelado Settings"),
+            "setting_group" => "woovi_parcelado",
+        ] + $paymentMethodViewData);
+
         return [
             "header" =>  $this->load->controller("common/header"),
             "column_left" => $this->load->controller("common/column_left"),
             "footer" => $this->load->controller("common/footer"),
+
+            "pix_payment_method_settings" => $pixSettings,
+            "woovi_parcelado_payment_method_settings" => $parceladoSettings,
         ];
+    }
+
+
+    /**
+     * Get webhook callback URL.
+     */
+    private function getWebhookCallbackUrl(): string
+    {
+        return str_replace(
+            HTTP_SERVER,
+            HTTP_CATALOG,
+            $this->url->link("extension/woovi/payment/woovi_webhooks")
+        );
+    }
+
+    /**
+     * Check if current request method is HTTP POST.
+     */
+    private function isHttpPost(): bool
+    {
+        return $_SERVER["REQUEST_METHOD"] === "POST";
+    }
+
+    /**
+     * Get HTTP POSTed payload.
+     *
+     * @return array<mixed>
+     */
+    private function getHttpPostPayload(): array
+    {
+        /** @var array<mixed> $httpPayload */
+        $httpPayload = $this->request->post;
+
+        return $httpPayload;
+    }
+
+    /**
+     * Get only specified values from array.
+     *
+     * @param array<mixed> $arr
+     * @param array<mixed> $keys
+     * @return array<mixed>
+     */
+    private function filterArrayByKeys(array $arr, array $keys): array
+    {
+        return array_filter(
+            $arr,
+            fn ($key) => in_array($key, $keys),
+            ARRAY_FILTER_USE_KEY
+        );
     }
 }

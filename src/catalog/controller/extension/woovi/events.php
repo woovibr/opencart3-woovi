@@ -14,6 +14,14 @@
 class ControllerExtensionWooviEvents extends Controller
 {
     /**
+     * Available payment method codes.
+     */
+    public const AVAILABLE_METHOD_CODES = [
+        "woovi",
+        "woovi_parcelado",
+    ];
+
+    /**
      * Load necessary dependencies.
      */
     private function load(): void
@@ -103,13 +111,14 @@ class ControllerExtensionWooviEvents extends Controller
      *
      * This adds a button to display the order's Pix Qr Code.
      *
-     * @param array{content_bottom: string, footer: string, payment_method: string, order_id: string} &$data
+     * @param array{content_bottom: string, footer: string, payment_method: string, order_id: string, payment_code?: string} &$data
      * @see https://developers.woovi.com/docs/plugin#criando-o-plugin-de-order
      */
     public function handleCatalogViewAccountOrderInfoBeforeEvent(string &$route, array &$data): void
     {
         // Ignore non-Pix payments.
-        if ($data["payment_method"] != "Pix") {
+        $isPixPayment = in_array($data["payment_code"] ?? "", self::AVAILABLE_METHOD_CODES);
+        if (! $isPixPayment) {
             return;
         }
 

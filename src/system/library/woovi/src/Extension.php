@@ -28,18 +28,14 @@ class Extension
     }
 
     /**
-     * Load extension.
+     * Register services and configuration to OpenCart.
      */
-    public function load(): void
+    public function register(): void
     {
-        $this->getLoader()->config("woovi");
-    }
+        if (file_exists(DIR_CONFIG . "woovi.php")) {
+            $this->getLoader()->config("woovi");
+        }
 
-    /**
-     * Register services to OpenCart registry.
-     */
-    public function registerDependencies(): void
-    {
         $this->registerPhpSdkClient();
         $this->registerLogger();
     }

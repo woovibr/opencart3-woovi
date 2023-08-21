@@ -40,53 +40,54 @@
     </div>
 
     <div class="container-fluid">
-        {% if woovi_warning %}
-            <div class="alert alert-danger alert-dismissible">
-                <i class="fa fa-exclamation-circle"></i>
-                {{ woovi_warning }}
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-            </div>
-        {% endif %}
+        <form
+            id="form-payment"
+            action="{{ save_route }}"
+            method="post"
+            class="form-horizontal"
+        >
+            {% if woovi_warning %}
+                <div class="alert alert-danger alert-dismissible">
+                    <i class="fa fa-exclamation-circle"></i>
+                    {{ woovi_warning }}
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                </div>
+            {% endif %}
 
-        {% if woovi_success %}
-            <div class="alert alert-success alert-dismissible">
-                <i class="fa fa-exclamation-circle"></i>
-                {{ woovi_success }}
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-            </div>
-        {% endif %}
+            {% if woovi_success %}
+                <div class="alert alert-success alert-dismissible">
+                    <i class="fa fa-exclamation-circle"></i>
+                    {{ woovi_success }}
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                </div>
+            {% endif %}
 
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">
-                    <i class="fa fa-pencil"></i>
+            <!-- General Settings -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <i class="fa fa-pencil"></i>
 
-                    {{ lang["Edit Pix extension"] }}
-                </h3>
-            </div>
+                        {{ lang["Edit General Settings"] }}
+                    </h3>
+                </div>
 
-            <div class="panel-body">
-                <form
-                    id="form-payment"
-                    action="{{ save_route }}"
-                    method="post"
-                    class="form-horizontal"
-                >
+                <div class="panel-body">
+                    <!-- App ID -->
                     <div class="form-group">
-                        <label for="input-status" class="col-sm-2 control-label">
-                            {{ lang["Status"] }}
+                        <label for="input-app-id" class="col-sm-2 control-label">
+                            {{ lang["App ID"] }}
                         </label>
                         <div class="col-sm-10">
-                            <select name="payment_woovi_status" id="input-status" class="form-control">
-                                {% if payment_woovi_status %}
-                                    <option value="1" selected="selected">{{ text_enabled }}</option>
-                                    <option value="0">{{ text_disabled }}</option>
-                                {% else %}
-                                    <option value="1">{{ text_enabled }}</option>
-                                    <option value="0" selected="selected">{{ text_disabled }}</option>
-                                 {% endif %}
-                            </select>
-
+                            <input
+                                type="text"
+                                name="settings[woovi][app_id]"
+                                value="{{ settings["woovi"]["app_id"] }}"
+                                placeholder="{{ lang["Enter your Woovi App ID"] }}"
+                                id="input-app-id"
+                                class="form-control"
+                            />
+                            
                             <p>
                                 {{ lang["Use this Webhook URL to be registered at Woovi:"] }}
                                 <a href="{{ woovi_webhook_callback_url }}">
@@ -106,93 +107,27 @@
                             </p> 
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="form-group">
-                        <label for="input-app-id" class="col-sm-2 control-label">
-                            {{ lang["App ID"] }}
-                        </label>
-                        <div class="col-sm-10">
-                            <input
-                                type="text"
-                                name="payment_woovi_app_id"
-                                value="{{ payment_woovi_app_id }}"
-                                placeholder="{{ lang["Enter your Woovi App ID"] }}"
-                                id="input-app-id"
-                                class="form-control"
-                            />
-                        </div>
+            <!-- Checkout fields -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <i class="fa fa-pencil"></i>
+
+                        {{ lang["Edit checkout field settings"] }}
+                    </h3>
+                </div>
+
+                <div class="panel-body">
+                    <div class="form-group" style="padding-top: 0; padding-left: 15px">
+                        <a href="{{ create_custom_field_route }}">
+                            {{ lang["Create an custom field here."] }}
+                        </a>
                     </div>
 
-                    <div class="form-group">
-                        <label
-                            for="input-order-status"
-                            class="col-sm-2 control-label"
-                        >
-                            {{ lang["Change order status after issuing the pix to:"] }}
-                        </label>
-                        <div class="col-sm-10">
-                            <select
-                                name="payment_woovi_order_status_when_waiting_id" id="input-order-status"
-                                class="form-control"
-                            >
-                                {% for order_status in order_statuses %}
-                                    <option
-                                        value="{{ order_status.order_status_id }}"
-                                        {% if order_status.order_status_id == payment_woovi_order_status_when_waiting_id %} selected="selected"{% endif %}
-                                    >
-                                        {{ order_status.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label
-                            for="input-order-status"
-                            class="col-sm-2 control-label"
-                        >
-                            {{ lang["Change order status after pix charge is paid to:"] }}
-                        </label>
-                        <div class="col-sm-10">
-                            <select
-                                name="payment_woovi_order_status_when_paid_id" id="input-order-status"
-                                class="form-control"
-                            >
-                                {% for order_status in order_statuses %}
-                                    <option
-                                        value="{{ order_status.order_status_id }}"
-                                        {% if order_status.order_status_id == payment_woovi_order_status_when_paid_id %}
-                                        selected="selected"
-                                        {% endif %}
-                                    >
-                                        {{ order_status.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label
-                            for="input-notify-customer"
-                            class="col-sm-2 control-label"
-                        >
-                            {{ lang["Notify customer when order is paid?"] }}
-                        </label>
-                        <div class="col-sm-10">
-                            <select name="payment_woovi_notify_customer" id="input-status" class="form-control">
-                                {% if payment_woovi_notify_customer %}
-                                    <option value="1" selected="selected">{{ text_yes }}</option>
-                                    <option value="0">{{ text_no }}</option>
-                                {% else %}
-                                    <option value="1">{{ text_yes }}</option>
-                                    <option value="0" selected="selected">{{ text_no }}</option>
-                                 {% endif %}
-                            </select>
-                        </div>
-                    </div>
-
+                    <!-- TaxID custom field -->
                     <div class="form-group">
                         <label
                             for="input-tax-id-custom-field-id"
@@ -202,7 +137,7 @@
                         </label>
                         <div class="col-sm-10">
                             <select
-                                name="payment_woovi_tax_id_custom_field_id" id="input-tax-id-custom-field-id"
+                                name="settings[woovi][tax_id_custom_field_id]" id="input-tax-id-custom-field-id"
                                 class="form-control"
                             >
                                 <option value="">{{ lang["None"] }}</option>
@@ -210,37 +145,82 @@
                                 {% for custom_field in custom_fields %}
                                     <option
                                         value="{{ custom_field.custom_field_id }}"
-                                        {% if custom_field.custom_field_id == payment_woovi_tax_id_custom_field_id %} selected="selected"{% endif %}
+                                        {% if custom_field.custom_field_id == settings["woovi"]["tax_id_custom_field_id"] %} selected="selected"
+                                        {% endif %}
                                     >
                                         {{ custom_field.name }}
                                     </option>
                                 {% endfor %}
                             </select>
-                            
-                            <a href="{{ create_custom_field_route }}">
-                                {{ lang["Create an custom field here."] }}
-                            </a>
                         </div>
                     </div>
 
+                    <!-- Address number custom field -->
                     <div class="form-group">
-                        <label for="input-payment-method-title" class="col-sm-2 control-label">
-                            {{ lang["Payment method title"] }}
+                        <label
+                            for="input-address-number-custom-field-id"
+                            class="col-sm-2 control-label"
+                        >
+                            {{ lang["Which custom field to use for the customer address house number?"] }}
                         </label>
                         <div class="col-sm-10">
-                            <input
-                                type="text"
-                                name="payment_woovi_payment_method_title"
-                                value="{{ payment_woovi_payment_method_title }}"
-                                placeholder="{{ lang["Payment method title"] }}"
-                                id="input-payment-method-title"
+                            <select
+                                name="settings[woovi][address_number_custom_field_id]" 
+                                id="input-address-number-custom-field-id"
                                 class="form-control"
-                            />
+                            >
+                                <option value="">{{ lang["None"] }}</option>
+
+                                {% for custom_field in custom_fields %}
+                                    <option
+                                        value="{{ custom_field.custom_field_id }}"
+                                        {% if custom_field.custom_field_id == settings["woovi"]["address_number_custom_field_id"] %} selected="selected"
+                                        {% endif %}
+                                    >
+                                        {{ custom_field.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
-                </form>
+
+                    <!-- Address complement custom field -->
+                    <div class="form-group">
+                        <label
+                            for="input-address-complement-custom-field-id"
+                            class="col-sm-2 control-label"
+                        >
+                            {{ lang["Which custom field to use for the customer address complement?"] }}
+                        </label>
+                        <div class="col-sm-10">
+                            <select
+                                name="settings[woovi][address_complement_custom_field_id]"
+                                id="input-address-complement-custom-field-id"
+                                class="form-control"
+                            >
+                                <option value="">{{ lang["None"] }}</option>
+
+                                {% for custom_field in custom_fields %}
+                                    <option
+                                        value="{{ custom_field.custom_field_id }}"
+                                        {% if custom_field.custom_field_id == settings["woovi"]["address_complement_custom_field_id"] %} selected="selected"
+                                        {% endif %}
+                                    >
+                                        {{ custom_field.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            <!-- Pix Settings -->
+            {{ components["pix_payment_method_settings"] }}
+
+            <!-- Woovi Parcelado Settings -->
+            {{ components["woovi_parcelado_payment_method_settings"] }}
+        </form>
     </div>
 </div>
 

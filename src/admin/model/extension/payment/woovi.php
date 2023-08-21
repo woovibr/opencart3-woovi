@@ -7,6 +7,7 @@
  *
  * @property DB $db
  * @property Loader $load
+ * @property Language $language
  * @property ModelCustomerCustomField $model_customer_custom_field
  * @property ModelSettingSetting $model_setting_setting
  * @property ModelSettingEvent $model_setting_event
@@ -62,41 +63,95 @@ class ModelExtensionPaymentWoovi extends Model
         $this->load->model("customer/custom_field");
         $this->load->model("localisation/language");
 
-        // Add same name for all languages.
-        $descriptions = [];
+        // Add translated custom field descriptions.
+        $languages = $this->model_localisation_language->getLanguages();
 
-        $languageIds = array_values(array_map(
-            fn ($language) => intval($language["language_id"]),
-            $this->model_localisation_language->getLanguages()
-        ));
+        $descriptions = [
+            "tax_id" => "CPF/CNPJ",
+            "address_number" => "Address number",
+            "address_complement" => "Address complement",
+        ];
 
-        foreach ($languageIds as $languageId) {
-            $descriptions[$languageId] = [
-                "name" => "CPF/CNPJ",
-            ];
+        $descriptionTranslations = [];
+
+        foreach ($languages as $language) {
+            $languageCode = $language["code"];
+
+            $this->language->load("extension/payment/woovi", $languageCode);
+
+            /** @var Language|string $extensionTranslations */
+            $extensionTranslations = $this->language->get($languageCode);
+
+            if (! ($extensionTranslations instanceof Language)) {
+                $extensionTranslations = $this->language;
+            }
+
+            $extensionTranslations = $extensionTranslations->all();
+
+            foreach ($descriptions as $customField => $description) {
+                $languageId = $language["language_id"];
+                $translation = $extensionTranslations[$description] ?? $description;
+
+                $descriptionTranslations[$customField][$languageId] = [
+                    "name" => $translation
+                ];
+            }
         }
 
         // Use default customer group ID.
         $customerGroupId = $this->config->get("config_customer_group_id");
 
         $taxIdCustomFieldId = $this->model_customer_custom_field->addCustomField([
-            "custom_field_description" => $descriptions,
+            "custom_field_description" => $descriptionTranslations["tax_id"],
             "type" => "text",
             "validation" => self::TAX_ID_CUSTOM_FIELD_VALIDATION_REGEX,
             "location" => "account",
             "status" => 1,
-            "sort_order" => "",
             "value" => "",
+            "sort_order" => 3,
             "custom_field_customer_group" => [
                 [
                     "customer_group_id" => $customerGroupId,
-                    "required" => true,
+                    "required" => 1,
                 ],
             ],
         ]);
 
-        // Store setting.
+        $addressNumberCustomFieldId = $this->model_customer_custom_field->addCustomField([
+            "custom_field_description" => $descriptionTranslations["address_number"],
+            "type" => "text",
+            "validation" => "",
+            "location" => "address",
+            "status" => 1,
+            "value" => "",
+            "sort_order" => 2,
+            "custom_field_customer_group" => [
+                [
+                    "customer_group_id" => $customerGroupId,
+                    "required" => 1,
+                ],
+            ],
+        ]);
+
+        $addressComplementCustomFieldId = $this->model_customer_custom_field->addCustomField([
+            "custom_field_description" => $descriptionTranslations["address_complement"],
+            "type" => "text",
+            "validation" => "",
+            "location" => "address",
+            "status" => 1,
+            "value" => "",
+            "sort_order" => 3,
+            "custom_field_customer_group" => [
+                [
+                    "customer_group_id" => $customerGroupId,
+                ],
+            ],
+        ]);
+
+        // Store settings.
         $settings["payment_woovi_tax_id_custom_field_id"] = $taxIdCustomFieldId;
+        $settings["payment_woovi_address_number_custom_field_id"] = $addressNumberCustomFieldId;
+        $settings["payment_woovi_address_complement_custom_field_id"] = $addressComplementCustomFieldId;
 
         $this->model_setting_setting->editSetting("payment_woovi", $settings);
     }
@@ -108,13 +163,43 @@ class ModelExtensionPaymentWoovi extends Model
     {
         $this->load->model("setting/setting");
 
+        $this->installPaymentMethodSettings(
+            "woovi",
+            $this->language->get("Pay with Pix")
+        );
+        $this->installPaymentMethodSettings(
+            "woovi_parcelado",
+            $this->language->get("Pay with Woovi Parcelado")
+        );
+        $this->installGeneralSettings();
+    }
+
+    /**
+     * Install General settings.
+     */
+    private function installGeneralSettings(): void
+    {
         $settings = $this->model_setting_setting->getSetting("payment_woovi");
+
+        if (! isset($settings["payment_woovi_app_id"])) {
+            $settings["payment_woovi_app_id"] = "";
+        }
+
+        $this->model_setting_setting->editSetting("payment_woovi", $settings);
+    }
+
+    /**
+     * Install default settings for a payment method.
+     */
+    private function installPaymentMethodSettings(string $group, string $methodTitle): void
+    {
+        $settings = $this->model_setting_setting->getSetting("payment_{$group}");
 
         // Use OpenCart configured order status.
         // Otherwise, use "pending" as default waiting status.
         // On OpenCart installer, the pending status ID is 1:
         // https://github.com/opencart/opencart/blob/e3ae482e66671167b44f86e798f07f8084561117/upload/install/opencart.sql#L1578
-        $orderStatusWhenWaitingId = $settings["payment_woovi_order_status_when_waiting_id"] ?? "";
+        $orderStatusWhenWaitingId = $settings["payment_{$group}_order_status_when_waiting_id"] ?? "";
 
         if (empty($orderStatusWhenWaitingId)) {
             $orderStatusWhenWaitingId = $this->model_setting_setting->getSettingValue("config_order_status_id");
@@ -124,20 +209,28 @@ class ModelExtensionPaymentWoovi extends Model
             $orderStatusWhenWaitingId = $this->findOrderStatusIdByName(["Pendente", "Pending"], 1);
         }
 
-        $settings["payment_woovi_order_status_when_waiting_id"] = $orderStatusWhenWaitingId;
+        $settings["payment_{$group}_order_status_when_waiting_id"] = $orderStatusWhenWaitingId;
 
         // Use "processing" as default paid status.
         // On OpenCart installer, the processing status ID is 2:
         // https://github.com/opencart/opencart/blob/e3ae482e66671167b44f86e798f07f8084561117/upload/install/opencart.sql#L1568
-        if (empty($settings["payment_woovi_order_status_when_paid_id"])) {
-            $settings["payment_woovi_order_status_when_paid_id"] = $this->findOrderStatusIdByName(["Processando", "Processing"], 2);
+        if (empty($settings["payment_{$group}_order_status_when_paid_id"])) {
+            $settings["payment_{$group}_order_status_when_paid_id"] = $this->findOrderStatusIdByName(["Processando", "Processing"], 2);
         }
 
-        if (empty($settings["payment_woovi_payment_method_title"])) {
-            $settings["payment_woovi_payment_method_title"] = "Pix";
+        if (empty($settings["payment_{$group}_payment_method_title"])) {
+            $settings["payment_{$group}_payment_method_title"] = $methodTitle;
         }
 
-        $this->model_setting_setting->editSetting("payment_woovi", $settings);
+        if (empty($settings["payment_{$group}_status"])) {
+            $settings["payment_{$group}_status"] = "0";
+        }
+
+        if (empty($settings["payment_{$group}_notify_customer"])) {
+            $settings["payment_{$group}_notify_customer"] = "0";
+        }
+
+        $this->model_setting_setting->editSetting("payment_{$group}", $settings);
     }
 
     /**

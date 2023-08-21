@@ -31,7 +31,7 @@ class Woovi
 
         $extension = new Extension($this->registry);
 
-        // Register dependencies needed for extension on OpenCart registry.
-        $extension->registerDependencies();
+        // Register dependencies and configuration needed for extension on OpenCart.
+        $extension->register();
     }
 }

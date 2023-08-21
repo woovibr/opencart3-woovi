@@ -147,18 +147,6 @@ class ControllerExtensionPaymentWoovi extends Controller
 
         $order = $this->model_checkout_order->getOrder($orderId);
 
-        //  * @phpstan-type OpencartOrder array{order_id: string, store_name: string, payment_custom_field?: string|array, payment_code: string, payment_postcode: string|int, payment_city: string, payment_zone_code: string, shipping_iso_code_2: string, payment_address_1: string, payment_address_2: string}
-
-        // $fields = [
-        //     "order_id",
-        //     "store_name",
-        //     "payment_code",
-        //     "payment_postcode",
-        //     "payment_city",
-        //     "payment_zone_code",
-        //     "shipping_iso_code_2",
-        // ];
-
         $isOrderIdInvalid = empty($order["order_id"])
             || ! is_string($order["order_id"]);
 

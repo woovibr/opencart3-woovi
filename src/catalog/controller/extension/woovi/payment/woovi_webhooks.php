@@ -36,6 +36,11 @@ class ControllerExtensionWooviPaymentWooviWebhooks extends Controller
     public const OPENPIX_CHARGE_COMPLETED_EVENT = "OPENPIX:CHARGE_COMPLETED";
 
     /**
+     * Charge completed is when a charge is fully paid.
+     */
+    public const OPENPIX_TRANSACTION_RECEIVED = "OPENPIX:TRANSACTION_RECEIVED";
+
+    /**
      * Load dependencies.
      */
     private function load(): void
@@ -270,8 +275,12 @@ class ControllerExtensionWooviPaymentWooviWebhooks extends Controller
      */
     private function isValidChargeCompletedPayload(array $payload): bool
     {
+        $isChargePaidPayload =
+            $payload["event"] === self::OPENPIX_CHARGE_COMPLETED_EVENT
+            || $payload["event"] === self::OPENPIX_TRANSACTION_RECEIVED;
+
         return ! empty($payload["event"])
-            && $payload["event"] === self::OPENPIX_CHARGE_COMPLETED_EVENT
+            && $isChargePaidPayload
             && ! empty($payload["charge"]["correlationID"])
             && is_string($payload["charge"]["correlationID"]);
     }

@@ -59,19 +59,21 @@ class ControllerExtensionPaymentWoovi extends Controller
         $opencartCustomerCustomFields = $this->getOpencartCustomer()["custom_field"] ?? [];
         $paymentCustomFields = $orderData["payment_custom_field"] ?? [];
 
+        $isWooviParcelado = $orderData["payment_code"] == "payment_woovi";
+
         $showTaxIdInput = empty($this->getCustomFieldValue(
             $this->config->get("payment_woovi_tax_id_custom_field_id"),
             $opencartCustomerCustomFields,
             "account"
         ));
 
-        $showAddressNumberInput = empty($this->getCustomFieldValue(
+        $showAddressNumberInput = $isWooviParcelado && empty($this->getCustomFieldValue(
             $this->config->get("payment_woovi_address_number_custom_field_id"),
             $paymentCustomFields,
             "address"
         ));
 
-        $showAddressComplementInput = ! $this->hasCustomField(
+        $showAddressComplementInput = $isWooviParcelado && ! $this->hasCustomField(
             $this->config->get("payment_woovi_address_complement_custom_field_id"),
             $paymentCustomFields,
             "address",

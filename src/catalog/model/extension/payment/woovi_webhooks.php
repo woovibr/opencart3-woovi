@@ -33,13 +33,20 @@ class ModelExtensionPaymentWooviWebhooks extends Model
             return;
         }
 
-        $this->db->query("
-            UPDATE `" . DB_PREFIX . "setting`
-            SET `value` = '" . $newAppId
-                . "', `serialized` = '0'
-            WHERE `code` = 'payment_woovi'
-                AND `key` = 'payment_woovi_app_id'
-                AND `store_id` = '" . $storeId . "'
-        ");
+        $currentAppId = trim($query->value ?? "");
+
+        var_dump($currentAppId);
+        exit;
+
+        if (empty($currentAppId)) {
+            $this->db->query("
+                UPDATE `" . DB_PREFIX . "setting`
+                SET `value` = '" . $newAppId
+                    . "', `serialized` = '0'
+                WHERE `code` = 'payment_woovi'
+                    AND `key` = 'payment_woovi_app_id'
+                    AND `store_id` = '" . $storeId . "'
+            ");
+        }
     }
 }

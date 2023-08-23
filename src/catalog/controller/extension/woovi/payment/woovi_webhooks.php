@@ -119,6 +119,16 @@ class ControllerExtensionWooviPaymentWooviWebhooks extends Controller
     private function handleOpencartConfigureWebhook(array $payload): void
     {
         $appId = $payload["appID"];
+
+        // Do not allow new AppID if you already have one set up.
+        $currentAppId = trim($this->config->get("payment_woovi_app_id"));
+        $alreadyHasAppId = ! empty($currentAppId);
+
+        if ($alreadyHasAppId) {
+            $this->emitJson(["error" => "App ID already configured."], 400);
+            return;
+        }
+
         $this->model_extension_payment_woovi_webhooks->configureAppId($appId);
 
         $this->woovi_logger->debug("Webhook configured.", "catalog/webhooks");

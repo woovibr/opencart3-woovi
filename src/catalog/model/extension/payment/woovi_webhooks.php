@@ -21,7 +21,12 @@ class ModelExtensionPaymentWooviWebhooks extends Model
                 AND `key` = 'payment_woovi_app_id'
         ");
 
-        if (isset($query->num_rows) && ! $query->num_rows) {
+        // Create a new row with the App ID in the settings table,
+        // in case this row doesn't exist.
+        $configurationRowDoesntExists = isset($query->num_rows)
+            && ! $query->num_rows;
+
+        if ($configurationRowDoesntExists) {
             $this->db->query("
                 INSERT INTO `" . DB_PREFIX . "setting`
                 SET `store_id` = '" . $storeId . "',
@@ -33,20 +38,15 @@ class ModelExtensionPaymentWooviWebhooks extends Model
             return;
         }
 
-        $currentAppId = trim($query->value ?? "");
-
-        var_dump($currentAppId);
-        exit;
-
-        if (empty($currentAppId)) {
-            $this->db->query("
-                UPDATE `" . DB_PREFIX . "setting`
-                SET `value` = '" . $newAppId
-                    . "', `serialized` = '0'
-                WHERE `code` = 'payment_woovi'
-                    AND `key` = 'payment_woovi_app_id'
-                    AND `store_id` = '" . $storeId . "'
-            ");
-        }
+        // If you already have a row, we won't insert it,
+        // we'll just update it.
+        $this->db->query("
+            UPDATE `" . DB_PREFIX . "setting`
+            SET `value` = '" . $newAppId
+                . "', `serialized` = '0'
+            WHERE `code` = 'payment_woovi'
+                AND `key` = 'payment_woovi_app_id'
+                AND `store_id` = '" . $storeId . "'
+        ");
     }
 }

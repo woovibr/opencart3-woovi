@@ -85,11 +85,13 @@
                         {{ lang["Connect the extension"] }}
                     </button>
 
-                    <p>
-                        <strong>
-                            {{ lang["Warning: This will overwrite your current non-empty AppID."] }}
-                        </strong>
-                    </p>
+                    {% if settings["woovi"]["app_id"] %}
+                        <p>
+                            <strong>
+                                {{ lang["Warning: This will overwrite your current non-empty AppID."] }}
+                            </strong>
+                        </p>
+                    {% endif %}
                 </div>
             </div>
 

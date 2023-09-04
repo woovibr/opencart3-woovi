@@ -41,10 +41,10 @@
 
     <div class="container-fluid">
         <form
-            id="form-payment"
             action="{{ save_route }}"
             method="post"
             class="form-horizontal"
+            id="form-woovi"
         >
             {% if woovi_warning %}
                 <div class="alert alert-danger alert-dismissible">
@@ -62,7 +62,6 @@
                 </div>
             {% endif %}
 
-
             <!-- One click configuration -->
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -78,14 +77,13 @@
                         {{ lang["By pressing this button, you will be redirected to our platform where we will quickly configure a new integration."] }}
                     </p>
 
-                    <a
+                    <button
                         class="btn btn-primary"
                         style="margin: 5px 0"
-                        href="{{ woovi_oneclick_configuration_url }}"
-                        target="_blank"
+                        id="button-oneclick"
                     >
                         {{ lang["Connect the extension"] }}
-                    </a>
+                    </button>
 
                     <p>
                         <strong>
@@ -258,3 +256,67 @@
 </div>
 
 {{ components["footer"] }}
+
+<script type="text/javascript">
+(function () {
+    $("#button-oneclick").on("click", function () {
+        var element = this;
+
+        var userToken = getURLVar("user_token");
+        var url = "index.php?route=extension/payment/woovi/oneclick&user_token=" + userToken;
+
+        $.ajax({
+            url,
+            type: "POST",
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded",
+            cache: false,
+            processData: false,
+
+            beforeSend: function () {
+                $(element).prop("disabled", true).addClass("loading");
+            },
+            complete: function () {
+                $(element).prop("disabled", false).removeClass("loading");
+            },
+
+            success: function (json) {
+                $(".alert-dismissible, .text-danger").remove();
+                $(".form-group").removeClass("has-error");
+
+                if (json["error"] && json["error"]["warning"]) {
+                    showWarning(json["error"]["warning"]);
+                    return;
+                }
+
+                var redirectUrl = json["redirect_url"];
+
+                if (redirectUrl) {
+                    window.open(redirectUrl, "_blank");
+                }
+            },
+
+            error: function (xhr, ajaxOptions, thrownError) {
+                console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+            }
+        });
+    });
+
+    function showWarning(warning)
+    {
+        $("#form-woovi").prepend(
+            '\
+            <div class="alert alert-danger alert-dismissible">\
+                <i class="fa fa-circle-exclamation"></i>'
+                + warning
+                + ' <button\
+                        type="button"\
+                        class="close"\
+                        data-bs-dismiss="alert"\
+                    ></button>\
+            </div>\
+            '
+        );
+    }
+})();
+</script>

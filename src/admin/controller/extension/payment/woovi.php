@@ -81,6 +81,38 @@ class ControllerExtensionPaymentWoovi extends Controller
     }
 
     /**
+     * Configure the extension using one click.
+     */
+    public function oneclick()
+    {
+        $this->load();
+
+        // Redirect to admin panel home page if not POST.
+        if (! $this->isHttpPost()) {
+            header("Location: " . HTTP_SERVER);
+            exit;
+        }
+
+        // Validate if user has permission to modify extension.
+        $validationResult = $this->validateSaveRequest();
+
+        if (! empty($validationResult)) {
+            $this->emitJson($validationResult);
+            return;
+        }
+
+        // Remove current AppID.
+        $this->removeCurrentAppID();
+
+        // Redirect to the platform.
+        $platformOneclickPageUrl = $this->getPlatformOneclickPageUrl();
+
+        $this->emitJson([
+            "redirect_url" => $platformOneclickPageUrl,
+        ]);
+    }
+
+    /**
      * Prepare view data.
      *
      * @param SaveResult $saveResult
@@ -105,7 +137,6 @@ class ControllerExtensionPaymentWoovi extends Controller
         );
 
         $wooviWebhookCallbackUrl = $this->getWebhookCallbackUrl();
-        $wooviOneclickConfigurationUrl = "http://localhost:8103/home/applications/opencart3/add?website=" . $wooviWebhookCallbackUrl;
 
         $settings = $this->getCurrentSettings($httpPayload);
         $customFields = $this->model_customer_custom_field->getCustomFields([
@@ -126,7 +157,6 @@ class ControllerExtensionPaymentWoovi extends Controller
             "woovi_register_account_url" => "https://app.woovi.com/register",
             "woovi_webhook_callback_url" => $wooviWebhookCallbackUrl,
             "woovi_opencart_documentation_url" => "https://developers.woovi.com/docs/ecommerce/opencart/opencart3-extension",
-            "woovi_oneclick_configuration_url" => $wooviOneclickConfigurationUrl,
 
             // Routes
             "save_route" => $this->url->link(
@@ -135,6 +165,10 @@ class ControllerExtensionPaymentWoovi extends Controller
             ),
             "previous_route" => $marketplaceLink,
             "create_custom_field_route" => $this->url->link("customer/custom_field", $tokenQuery),
+            "oneclick_configuration_route" => $this->url->link(
+                "extension/payment/woovi/oneclick",
+                $tokenQuery
+            ),
 
             // Components
             "components" => $components,
@@ -372,6 +406,17 @@ class ControllerExtensionPaymentWoovi extends Controller
         ];
     }
 
+    /**
+     * Remove current App ID.
+     */
+    private function removeCurrentAppID(): void
+    {
+        $settings = $this->model_setting_setting->getSetting("payment_woovi");
+
+        $settings["payment_woovi_app_id"] = "";
+
+        $this->model_setting_setting->editSetting("payment_woovi", $settings);
+    }
 
     /**
      * Get webhook callback URL.
@@ -383,6 +428,16 @@ class ControllerExtensionPaymentWoovi extends Controller
             HTTP_CATALOG,
             $this->url->link("extension/woovi/payment/woovi_webhooks")
         );
+    }
+
+    /**
+     * Get one click configuration page URL at platform.
+     */
+    private function getPlatformOneclickPageUrl(): string
+    {
+        $wooviWebhookCallbackUrl = $this->getWebhookCallbackUrl();
+
+        return "http://localhost:8103/home/applications/opencart3/add?website=" . $wooviWebhookCallbackUrl;
     }
 
     /**
@@ -420,5 +475,16 @@ class ControllerExtensionPaymentWoovi extends Controller
             fn ($key) => in_array($key, $keys),
             ARRAY_FILTER_USE_KEY
         );
+    }
+
+     /**
+     * Encode given data as JSON and emit it with correct `Content-type`.
+     *
+     * @param mixed $data
+     */
+    private function emitJson($data): void
+    {
+        $this->response->addHeader("Content-Type: application/json");
+        $this->response->setOutput((string) json_encode($data));
     }
 }

@@ -105,6 +105,7 @@ class ControllerExtensionPaymentWoovi extends Controller
         );
 
         $wooviWebhookCallbackUrl = $this->getWebhookCallbackUrl();
+        $wooviOneclickConfigurationUrl = "http://localhost:8103/home/applications/opencart3/add?website=" . $wooviWebhookCallbackUrl;
 
         $settings = $this->getCurrentSettings($httpPayload);
         $customFields = $this->model_customer_custom_field->getCustomFields([
@@ -125,6 +126,7 @@ class ControllerExtensionPaymentWoovi extends Controller
             "woovi_register_account_url" => "https://app.woovi.com/register",
             "woovi_webhook_callback_url" => $wooviWebhookCallbackUrl,
             "woovi_opencart_documentation_url" => "https://developers.woovi.com/docs/ecommerce/opencart/opencart3-extension",
+            "woovi_oneclick_configuration_url" => $wooviOneclickConfigurationUrl,
 
             // Routes
             "save_route" => $this->url->link(

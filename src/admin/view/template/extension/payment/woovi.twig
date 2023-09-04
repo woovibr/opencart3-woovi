@@ -62,6 +62,39 @@
                 </div>
             {% endif %}
 
+
+            <!-- One click configuration -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <i class="fa fa-pencil"></i>
+
+                        {{ lang["Authenticate on the platform using 1 click"] }}
+                    </h3>
+                </div>
+
+                <div class="panel-body">
+                    <p>
+                        {{ lang["By pressing this button, you will be redirected to our platform where we will quickly configure a new integration."] }}
+                    </p>
+
+                    <a
+                        class="btn btn-primary"
+                        style="margin: 5px 0"
+                        href="{{ woovi_oneclick_configuration_url }}"
+                        target="_blank"
+                    >
+                        {{ lang["Connect the extension"] }}
+                    </a>
+
+                    <p>
+                        <strong>
+                            {{ lang["Warning: This will overwrite your current non-empty AppID."] }}
+                        </strong>
+                    </p>
+                </div>
+            </div>
+
             <!-- General Settings -->
             <div class="panel panel-default">
                 <div class="panel-heading">

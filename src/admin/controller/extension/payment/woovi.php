@@ -16,6 +16,7 @@
  * @property ModelLocalisationOrderStatus $model_localisation_order_status
  * @property ModelSettingSetting $model_setting_setting
  * @property ModelExtensionPaymentWoovi $model_extension_payment_woovi
+ * @property Woovi\Opencart\Extension $woovi_extension
  *
  * @phpstan-type SaveResult array{success?: string, warning?: string}
  */
@@ -86,6 +87,7 @@ class ControllerExtensionPaymentWoovi extends Controller
     public function oneclick()
     {
         $this->load();
+        $this->load->library("woovi");
 
         // Redirect to admin panel home page if not POST.
         if (! $this->isHttpPost()) {
@@ -436,8 +438,10 @@ class ControllerExtensionPaymentWoovi extends Controller
     private function getPlatformOneclickPageUrl(): string
     {
         $wooviWebhookCallbackUrl = $this->getWebhookCallbackUrl();
+        $platformUrl = $this->woovi_extension->getEnvironment()["platformUrl"] ?? "https://app.woovi.com";
+        $opencartUrl = $platformUrl . "/home/applications/opencart3/add";
 
-        return "http://localhost:8103/home/applications/opencart3/add?website=" . $wooviWebhookCallbackUrl;
+        return $opencartUrl . "?website=" . $wooviWebhookCallbackUrl;
     }
 
     /**

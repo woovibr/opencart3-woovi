@@ -16,6 +16,7 @@
  * @property ModelLocalisationOrderStatus $model_localisation_order_status
  * @property ModelSettingSetting $model_setting_setting
  * @property ModelExtensionPaymentWoovi $model_extension_payment_woovi
+ * @property Woovi\Opencart\Extension $woovi_extension
  *
  * @phpstan-type SaveResult array{success?: string, warning?: string}
  */
@@ -81,6 +82,39 @@ class ControllerExtensionPaymentWoovi extends Controller
     }
 
     /**
+     * Configure the extension using one click.
+     */
+    public function oneclick()
+    {
+        $this->load();
+        $this->load->library("woovi");
+
+        // Redirect to admin panel home page if not POST.
+        if (! $this->isHttpPost()) {
+            header("Location: " . HTTP_SERVER);
+            exit;
+        }
+
+        // Validate if user has permission to modify extension.
+        $validationResult = $this->validateSaveRequest();
+
+        if (! empty($validationResult)) {
+            $this->emitJson($validationResult);
+            return;
+        }
+
+        // Remove current AppID.
+        $this->removeCurrentAppID();
+
+        // Redirect to the platform.
+        $platformOneclickPageUrl = $this->getPlatformOneclickPageUrl();
+
+        $this->emitJson([
+            "redirect_url" => $platformOneclickPageUrl,
+        ]);
+    }
+
+    /**
      * Prepare view data.
      *
      * @param SaveResult $saveResult
@@ -133,6 +167,10 @@ class ControllerExtensionPaymentWoovi extends Controller
             ),
             "previous_route" => $marketplaceLink,
             "create_custom_field_route" => $this->url->link("customer/custom_field", $tokenQuery),
+            "oneclick_configuration_route" => $this->url->link(
+                "extension/payment/woovi/oneclick",
+                $tokenQuery
+            ),
 
             // Components
             "components" => $components,
@@ -370,6 +408,17 @@ class ControllerExtensionPaymentWoovi extends Controller
         ];
     }
 
+    /**
+     * Remove current App ID.
+     */
+    private function removeCurrentAppID(): void
+    {
+        $settings = $this->model_setting_setting->getSetting("payment_woovi");
+
+        $settings["payment_woovi_app_id"] = "";
+
+        $this->model_setting_setting->editSetting("payment_woovi", $settings);
+    }
 
     /**
      * Get webhook callback URL.
@@ -381,6 +430,18 @@ class ControllerExtensionPaymentWoovi extends Controller
             HTTP_CATALOG,
             $this->url->link("extension/woovi/payment/woovi_webhooks")
         );
+    }
+
+    /**
+     * Get one click configuration page URL at platform.
+     */
+    private function getPlatformOneclickPageUrl(): string
+    {
+        $wooviWebhookCallbackUrl = $this->getWebhookCallbackUrl();
+        $platformUrl = $this->woovi_extension->getEnvironment()["platformUrl"] ?? "https://app.woovi.com";
+        $opencartUrl = $platformUrl . "/home/applications/opencart3/add";
+
+        return $opencartUrl . "?website=" . $wooviWebhookCallbackUrl;
     }
 
     /**
@@ -418,5 +479,16 @@ class ControllerExtensionPaymentWoovi extends Controller
             fn ($key) => in_array($key, $keys),
             ARRAY_FILTER_USE_KEY
         );
+    }
+
+     /**
+     * Encode given data as JSON and emit it with correct `Content-type`.
+     *
+     * @param mixed $data
+     */
+    private function emitJson($data): void
+    {
+        $this->response->addHeader("Content-Type: application/json");
+        $this->response->setOutput((string) json_encode($data));
     }
 }

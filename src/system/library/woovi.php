@@ -27,11 +27,21 @@ class Woovi
      */
     public function loadLibrary(): void
     {
+        $extension = $this->makeExtension();
+
+        // Register dependencies and configuration needed for extension on OpenCart.
+        $extension->register();
+    }
+
+    /**
+     * Create a new `Extension`.
+     */
+    public function makeExtension(): Extension
+    {
         require_once __DIR__ . "/woovi/vendor/autoload.php";
 
         $extension = new Extension($this->registry);
 
-        // Register dependencies and configuration needed for extension on OpenCart.
-        $extension->register();
+        return $extension;
     }
 }

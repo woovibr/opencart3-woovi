@@ -47,3 +47,8 @@ $_["Address complement"] = "Complemento do endereço";
 
 $_["Pay with Pix"] = "Pagar com Pix";
 $_["Pay with Woovi Parcelado"] = "Pagar com Woovi Parcelado";
+
+$_["Authenticate on the platform using 1 click"] = "Autentique na plataforma com 1 clique";
+$_["Connect the extension"] = "Conectar a extensão";
+$_["By pressing this button, you will be redirected to our platform where we will quickly configure a new integration."] = "Ao pressionar este botão você será redirecionado para nossa plataforma onde configuraremos rapidamente uma nova integração.";
+$_["Warning: This will overwrite your current non-empty AppID."] = "Aviso: Isso substituirá seu AppID atual que não está vázio.";

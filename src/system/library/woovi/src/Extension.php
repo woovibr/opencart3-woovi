@@ -32,10 +32,8 @@ class Extension
      */
     public function register(): void
     {
-        if (file_exists(DIR_CONFIG . "woovi.php")) {
-            $this->getLoader()->config("woovi");
-        }
-
+        $this->registry->set("woovi_extension", $this);
+        $this->registerConfig();
         $this->registerPhpSdkClient();
         $this->registerLogger();
     }
@@ -57,9 +55,19 @@ class Extension
     }
 
     /**
+     * Register config.
+     */
+    public function registerConfig(): void
+    {
+        if (file_exists(DIR_CONFIG . "woovi.php")) {
+            $this->getLoader()->config("woovi");
+        }
+    }
+
+    /**
      * Register PHP-SDK Client service.
      */
-    private function registerPhpSdkClient(): void
+    public function registerPhpSdkClient(): void
     {
         if ($this->registry->has("woovi_api_client")) {
             return;
@@ -71,7 +79,7 @@ class Extension
     /**
      * Register logger service.
      */
-    private function registerLogger(): void
+    public function registerLogger(): void
     {
         if ($this->registry->has("woovi_logger")) {
             return;

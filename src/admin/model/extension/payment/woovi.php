@@ -20,7 +20,7 @@ class ModelExtensionPaymentWoovi extends Model
     /**
      * Current extension version.
      */
-    public const CURRENT_VERSION = "1.0.1";
+    public const CURRENT_VERSION = "1.1.0";
 
     /**
      * Regex for validating CPF/CNPJ field format.

@@ -12,7 +12,7 @@ class Logger
      *
      * @var array<string>
      */
-    private array $logFilePaths;
+    private $logFilePaths;
 
     /**
      * Create a new `Logger` instance.

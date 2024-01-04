@@ -16,8 +16,10 @@ class Extension
 {
     /**
      * Registry of OpenCart dependencies.
+     * 
+     * @var Registry
      */
-    private Registry $registry;
+    private $registry;
 
     /**
      * Create a new `Extension` instance.

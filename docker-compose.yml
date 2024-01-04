@@ -23,15 +23,16 @@ services:
       - opencart_storage:${OPENCART_STORAGE_PATH}
   mysql:
     image: mysql:${MYSQL_VERSION}
+    command: --default-authentication-plugin=mysql_native_password
     ports:
       - ${MYSQL_PORT}:3306
     env_file: .env
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
-      - mysql-data:/var/lib/mysql
+      - mysql:/var/lib/mysql
 
 volumes:
-  mysql-data:
+  mysql:
   opencart:
   opencart_storage:

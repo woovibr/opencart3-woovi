@@ -2,20 +2,15 @@
 
 cd $EXTENSION_PATH
 
-composer install
+composer install --ignore-platform-reqs
 
 echo "Waiting for MySQL..."
 
 curl -sSL https://raw.githubusercontent.com/eficode/wait-for/v2.2.3/wait-for | sh -s -- $MYSQL_HOST:$MYSQL_PORT -t 0
 
-composer robo opencart:download
-
-composer robo opencart:setup
-
-composer robo opencart:fix
-
-composer robo extension:link
-
-composer robo extension:enable
-
-composer robo opencart:serve
+composer robo opencart:download \
+	&& composer robo opencart:setup \
+	&& composer robo opencart:fix \
+	&& composer robo extension:link \
+	&& composer robo extension:enable \
+	&& composer robo opencart:serve

@@ -18,23 +18,31 @@ class OpencartRunner
 {
     /**
      * Indicate if OpenCart is already booted.
+     * 
+     * @var bool
      */
     private bool $booted = false;
 
     /**
      * The registry of OpenCart.
+     * 
+     * @var Registry
      */
-    public Registry $registry;
+    public $registry;
 
     /**
      * The path of OpenCart installation.
+     * 
+     * @var string
      */
-    private string $opencartPath;
+    private $opencartPath;
 
     /**
      * The port of application.
+     * 
+     * @var string
      */
-    private string $appPort;
+    private $appPort;
 
     /**
      * Create a new `OpencartRunner` instance.

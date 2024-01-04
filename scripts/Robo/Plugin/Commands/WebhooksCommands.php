@@ -24,8 +24,10 @@ class WebhooksCommands extends BaseTasks
 
     /**
      * The opencart runner used by commands.
+     * 
+     * @var ?OpencartRunner
      */
-    private ?OpencartRunner $opencartRunner = null;
+    private $opencartRunner = null;
 
     /**
      * Test "completed charge" webhook event.

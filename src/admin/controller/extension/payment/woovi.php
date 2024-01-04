@@ -480,7 +480,7 @@ class ControllerExtensionPaymentWoovi extends Controller
     {
         return array_filter(
             $arr,
-            function ($key) {
+            function ($key) use ($keys) {
                 return in_array($key, $keys);
             },
             ARRAY_FILTER_USE_KEY

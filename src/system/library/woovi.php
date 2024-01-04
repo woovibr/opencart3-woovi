@@ -9,8 +9,10 @@ class Woovi
 {
     /**
      * OpenCart registry.
+     * 
+     * @var Registry
      */
-    private Registry $registry;
+    private $registry;
 
     /**
      * Load the Woovi library.

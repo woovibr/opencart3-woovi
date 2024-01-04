@@ -8,26 +8,25 @@ RUN ln -snf /usr/share/zoneinfo/$TIMEZONE /etc/localtime && \
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
-    && apt-get install -y \
-        gnupg curl ca-certificates wget netcat-traditional \
-        zip unzip git software-properties-common \
-    && curl -sS 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14aa40ec0831756756d7f66c4f4ea0aae5267a6c' \
-        | gpg --dearmor \
-        | tee /usr/share/keyrings/ppa_ondrej_php.gpg > /dev/null \
-    && echo "deb [signed-by=/usr/share/keyrings/ppa_ondrej_php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu focal main" > /etc/apt/sources.list.d/ppa_ondrej_php.list
+    && apt-get install -y gnupg gosu curl ca-certificates zip unzip zip git libcap2-bin software-properties-common netcat-traditional wget \
+    && mkdir -p ~/.gnupg \
+    && echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf \
+    && apt-key adv --homedir ~/.gnupg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E5267A6C \
+    && apt-key adv --homedir ~/.gnupg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C300EE8C \
+    && echo "deb http://ppa.launchpad.net/ondrej/php/ubuntu focal main" > /etc/apt/sources.list.d/ppa_ondrej_php.list 
 
 RUN apt-get update \
-    && apt-get install -y php7.4-cli \
-       php7.4-gd php7.4-zip php7.4-curl \
-       php7.4-mysql php7.4-mbstring php7.4-xml \
-       php7.4-xdebug
+    && apt-get install -y php7.3-cli \
+       php7.3-gd php7.3-zip php7.3-curl \
+       php7.3-mysql php7.3-mbstring php7.3-xml \
+       php7.3-xdebug
 
 RUN apt-get -y autoremove \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY php.ini /etc/php7.4/php.ini
-COPY xdebug.ini /etc/php7.4/conf.d/xdebug.ini
+COPY php.ini /etc/php7.3/php.ini
+COPY xdebug.ini /etc/php7.3/conf.d/xdebug.ini
 
 RUN wget https://getcomposer.org/composer-stable.phar -O /usr/local/bin/composer \
     && chmod +x /usr/local/bin/composer

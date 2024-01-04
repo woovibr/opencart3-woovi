@@ -42,7 +42,11 @@ class ControllerExtensionPaymentWoovi extends Controller
             "tax_id_custom_field_id",
             "address_number_custom_field_id",
             "address_complement_custom_field_id",
-            ...self::PAYMENT_METHOD_FILLABLE_SETTINGS,
+            "status",
+            "order_status_when_waiting_id",
+            "order_status_when_paid_id",
+            "notify_customer",
+            "payment_method_title",
         ],
 
         "woovi_parcelado" => self::PAYMENT_METHOD_FILLABLE_SETTINGS,
@@ -476,7 +480,9 @@ class ControllerExtensionPaymentWoovi extends Controller
     {
         return array_filter(
             $arr,
-            fn ($key) => in_array($key, $keys),
+            function ($key) {
+                return in_array($key, $keys);
+            },
             ARRAY_FILTER_USE_KEY
         );
     }

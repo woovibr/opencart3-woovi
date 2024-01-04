@@ -12,6 +12,8 @@ abstract class BaseTasks extends Tasks
 {
     /**
      * Manage environment variables.
+     * 
+     * @var Dotenv
      */
     protected $dotenv;
 

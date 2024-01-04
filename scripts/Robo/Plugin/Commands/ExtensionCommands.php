@@ -180,11 +180,13 @@ class ExtensionCommands extends BaseTasks
             ->noScripts();
 
         // Enable production environment using this Robo instance.
-        $enableEnvironment = fn () => $this->extensionEnableEnvironment(
-            $consoleIO,
-            "production",
-            ["force" => true]
-        );
+        $enableEnvironment = function () {
+            return $this->extensionEnableEnvironment(
+                $consoleIO,
+                "production",
+                ["force" => true]
+            );
+        };
 
         // Add tasks to collection.
         $collection->addTaskList([
@@ -269,7 +271,9 @@ class ExtensionCommands extends BaseTasks
             ->ignoreDotFiles(false);
 
         $paths = array_flip(array_map(
-            fn (SplFileInfo $file) => "upload/" . $file->getRelativePathname(),
+            function (SplFileInfo $file) {
+                return "upload/" . $file->getRelativePathname();
+            },
             iterator_to_array($finder)
         ));
 

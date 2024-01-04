@@ -147,11 +147,13 @@ class ExtensionCommands extends BaseTasks
 
         $composerConfig = json_decode(file_get_contents($composerConfigPath), true);
 
-        $fixPath = fn (string $path) => str_replace(
-            "src/system/library/woovi",
-            "system/library/woovi",
-            $path
-        );
+        $fixPath = function (string $path) {
+            return str_replace(
+                "src/system/library/woovi",
+                "system/library/woovi",
+                $path
+            );
+        };
 
         foreach ($composerConfig["autoload"]["psr-4"] as &$path) {
             $path = $fixPath($path);

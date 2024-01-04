@@ -4,12 +4,12 @@
     "type": "project",
     "license": "GPL-3.0",
     "require": {
-        "php": "^7.4 || ^8.0",
+        "php": "^7.3 || ^8.0",
         "open-pix/php-sdk": "^1.1",
         "guzzlehttp/guzzle": "^7.7"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.19",
+        "friendsofphp/php-cs-fixer": "^3.4",
         "consolidation/robo": "^3",
         "vlucas/phpdotenv": "^5.5",
         "phpstan/phpstan": "^1.10",

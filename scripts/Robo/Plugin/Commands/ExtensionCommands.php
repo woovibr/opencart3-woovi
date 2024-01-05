@@ -180,7 +180,7 @@ class ExtensionCommands extends BaseTasks
             ->noScripts();
 
         // Enable production environment using this Robo instance.
-        $enableEnvironment = function () {
+        $enableEnvironment = function () use ($consoleIO) {
             return $this->extensionEnableEnvironment(
                 $consoleIO,
                 "production",

@@ -40,7 +40,7 @@ class Woovi
      */
     public function makeExtension(): Extension
     {
-        require_once __DIR__ . "/woovi/vendor/autoload.php";
+        require_once DIR_SYSTEM . "/library/woovi/vendor/autoload.php";
 
         $extension = new Extension($this->registry);
 

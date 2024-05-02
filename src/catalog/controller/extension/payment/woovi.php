@@ -48,6 +48,7 @@ class ControllerExtensionPaymentWoovi extends Controller
      */
     public function index(): string
     {
+        $this->load->model("checkout/order");
         $this->load->language("extension/payment/woovi");
 
         $orderData = $this->getValidatedOpencartOrder();
